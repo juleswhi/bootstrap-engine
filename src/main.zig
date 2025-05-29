@@ -17,11 +17,17 @@ pub fn main() !void {
     defer rl.closeWindow();
     rl.setTargetFPS(60);
 
+    var last_frame_time = rl.getTime();
+
     while (!rl.windowShouldClose()) {
+
+        const current_time = rl.getTime();
+        const dt: f32 = @floatCast(current_time - last_frame_time);
+        last_frame_time = current_time;
 
         systems.inputSystem(&reg);
 
-        systems.movementSystem(&reg);
+        systems.movementSystem(&reg, dt);
 
         rl.beginDrawing();
         defer rl.endDrawing();
@@ -31,10 +37,6 @@ pub fn main() !void {
         systems.renderSystem(&reg);
 
     }
-}
-
-fn toInt(f: f32) i32 {
-    return @intFromFloat(f);
 }
 
 fn createPlayer(reg: *ecs.Registry, width: f32, height: f32) void {
@@ -48,9 +50,7 @@ fn createPlayer(reg: *ecs.Registry, width: f32, height: f32) void {
 
 fn createGround(reg: *ecs.Registry, width: f32, height: f32) void {
     const entity = reg.create();
-
     const ground_height = 30;
-
     reg.add(entity, comp.Position.new(0, height + ground_height));
     reg.add(entity, comp.Size.new(width, ground_height));
     reg.add(entity, comp.Colour.new(255, 0, 0, 255));

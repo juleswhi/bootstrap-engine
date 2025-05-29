@@ -10,19 +10,19 @@ pub fn inputSystem(reg: *ecs.Registry) void {
         const vel = view.get(comp.Velocity, e);
         vel.x = 0;
 
-        if(rl.isKeyDown(.right)) vel.x = 5;
-        if(rl.isKeyDown(.left)) vel.x = -5;
+        if(rl.isKeyDown(.right)) vel.x = 500;
+        if(rl.isKeyDown(.left)) vel.x = -500;
     }
 }
 
-pub fn movementSystem(reg: *ecs.Registry) void {
+pub fn movementSystem(reg: *ecs.Registry, dt: f32) void {
     var view = reg.view(.{comp.Position, comp.Velocity}, .{});
     var iter = view.entityIterator();
     while(iter.next()) |e| {
         const vel = view.getConst(comp.Velocity, e);
         var pos = view.get(comp.Position, e);
-        pos.x += vel.x;
-        pos.y += vel.y;
+        pos.x += vel.x * dt;
+        pos.y += vel.y * dt;
     }
 }
 

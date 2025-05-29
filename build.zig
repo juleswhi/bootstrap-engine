@@ -31,7 +31,6 @@ pub fn build(b: *std.Build) void {
     const raylib_artifact = raylib_dep.artifact("raylib"); // raylib C library
     const ecs = ecs_dep.module("zig-ecs");
 
-
     exe.linkLibrary(raylib_artifact);
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("ecs", ecs);
