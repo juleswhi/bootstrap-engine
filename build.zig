@@ -21,15 +21,23 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const ecs_dep = b.dependency("ecs", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
     const raylib = raylib_dep.module("raylib"); // main raylib module
     const raygui = raylib_dep.module("raygui"); // raygui module
     const raylib_artifact = raylib_dep.artifact("raylib"); // raylib C library
+    const ecs = ecs_dep.module("zig-ecs");
 
 
-    b.installArtifact(exe);
     exe.linkLibrary(raylib_artifact);
     exe.root_module.addImport("raylib", raylib);
+    exe.root_module.addImport("ecs", ecs);
     exe.root_module.addImport("raygui", raygui);
+
+    b.installArtifact(exe);
 
     const exe_check = b.addExecutable(.{
         .name = "foo",
