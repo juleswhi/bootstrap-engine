@@ -1,7 +1,7 @@
 const std = @import("std");
 const ecs = @import("ecs");
-const comp = @import("components/components.zig");
 const rl = @import("raylib");
+const comp = @import("components/components.zig");
 const Level = @import("level.zig").Level;
 const serialiser = @import("serializer.zig");
 const debug = @import("log.zig").debug;
@@ -11,35 +11,89 @@ pub fn inputSystem(reg: *ecs.Registry, dt: f32) !void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const vel = view.get(comp.Velocity, e);
+        const prev_vel = vel.x;
         vel.x = 0;
 
-        if (rl.isKeyDown(.right) or rl.isKeyDown(.d)) vel.x = 500;
-        if (rl.isKeyDown(.left) or rl.isKeyDown(.a)) vel.x = -500;
-        if (rl.isKeyPressed(.one)) {
-            const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
-            defer std.heap.page_allocator.free(json);
-
-            debug("{s}", .{json});
-
-            var level = try serialiser.deserialiseLevel(json);
-            defer std.heap.page_allocator.free(level.rects);
-
-            level.load(reg);
-        }
-        if (rl.isKeyPressed(.two)) {
-            const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_two.json");
-            defer std.heap.page_allocator.free(json);
-
-            debug("{s}", .{json});
-
-            var level = try serialiser.deserialiseLevel(json);
-            defer std.heap.page_allocator.free(level.rects);
-
-            level.load(reg);
-        }
+        if (rl.isKeyDown(.right) or rl.isKeyDown(.d)) vel.x = @max(500, prev_vel);
+        if (rl.isKeyDown(.left) or rl.isKeyDown(.a)) vel.x = -1 * @max(500, prev_vel);
     }
 
+    try levelSelectSystem(reg);
+    dodgeInputSystem(reg);
     jumpInputSystem(reg, dt);
+}
+
+fn levelSelectSystem(reg: *ecs.Registry) !void {
+    if (rl.isKeyPressed(.one)) {
+        const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
+        defer std.heap.page_allocator.free(json);
+
+        debug("{s}", .{json});
+
+        var level = try serialiser.deserialiseLevel(json);
+        defer std.heap.page_allocator.free(level.rects);
+
+        level.load(reg);
+    }
+    if (rl.isKeyPressed(.two)) {
+        const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_two.json");
+        defer std.heap.page_allocator.free(json);
+
+        debug("{s}", .{json});
+
+        var level = try serialiser.deserialiseLevel(json);
+        defer std.heap.page_allocator.free(level.rects);
+
+        level.load(reg);
+    }
+}
+
+fn dodgeInputSystem(reg: *ecs.Registry) void {
+    var view = reg.view(.{ comp.PlayerTag, comp.Velocity, comp.Dodge }, .{});
+    var iter = view.entityIterator();
+
+    while (iter.next()) |e| {
+        var dodge = view.get(comp.Dodge, e);
+
+        if (dodge.cooldown_timer > 0 or dodge.is_dodging) continue;
+        if (!rl.isKeyPressed(.left_shift)) continue;
+
+        if (rl.isKeyDown(.right) or rl.isKeyDown(.d)) {
+            dodge.is_dodging = true;
+            dodge.direction = 1;
+            dodge.remaining_time = dodge.duration;
+        } else if (rl.isKeyDown(.left) or rl.isKeyDown(.a)) {
+            dodge.is_dodging = true;
+            dodge.direction = -1;
+            dodge.remaining_time = dodge.duration;
+        }
+    }
+}
+
+pub fn dodgeSystem(reg: *ecs.Registry, dt: f32) void {
+    var view = reg.view(.{ comp.Velocity, comp.Dodge, comp.Colour }, .{});
+    var iter = view.entityIterator();
+
+    while (iter.next()) |e| {
+        var vel = view.get(comp.Velocity, e);
+        var dodge = view.get(comp.Dodge, e);
+        var col = view.get(comp.Colour, e);
+
+        if (dodge.is_dodging) {
+            col.a = 125;
+            vel.x = dodge.direction * dodge.speed;
+            dodge.remaining_time -= dt;
+            if (dodge.remaining_time <= 0) {
+                dodge.is_dodging = false;
+                dodge.cooldown_timer = dodge.cooldown;
+            }
+        } else if (dodge.cooldown_timer > 0) {
+            col.a = 175;
+            dodge.cooldown_timer -= dt;
+        } else {
+            col.a = 255;
+        }
+    }
 }
 
 fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
@@ -67,7 +121,7 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
             jump.coyote_time -= dt;
         }
 
-        if (rl.isKeyDown(.space) or rl.isKeyDown(.up) or rl.isKeyDown(.w)) {
+        if (rl.isKeyDown(.up) or rl.isKeyDown(.w)) {
             jump.buffer_time = JUMP_BUFFER;
         }
 
@@ -87,6 +141,7 @@ pub fn movementSystem(reg: *ecs.Registry, dt: f32) void {
     while (iter.next()) |e| {
         const vel = view.getConst(comp.Velocity, e);
         var pos = view.get(comp.Position, e);
+
         pos.x += vel.x * dt;
         pos.y += vel.y * dt;
     }
