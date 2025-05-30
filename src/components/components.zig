@@ -7,6 +7,6 @@ pub const Grounded = @import("grounded.zig").Grounded;
 pub const Jump = @import("jump.zig").Jump;
 
 pub const PlayerTag = struct {};
-pub const GroundTag = struct {};
+pub const EnvironmentTag = struct {};
 pub const GravityTag = struct {};
 pub const RenderTag = struct {};

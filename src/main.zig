@@ -1,9 +1,12 @@
 const std = @import("std");
 const rl = @import("raylib");
-const ecs = @import("ecs");
 const comp = @import("components/components.zig");
+const ecs = @import("ecs");
 const systems = @import("systems.zig");
+const Level = @import("level.zig").Level;
+const Rect = @import("level.zig").Rect;
 const debug = @import("log.zig").debug;
+const serialiser = @import("serializer.zig");
 
 pub fn main() !void {
     var reg = ecs.Registry.init(std.heap.page_allocator);
@@ -12,12 +15,20 @@ pub fn main() !void {
     const height = 450;
 
     createPlayer(&reg, width, height);
-    createGround(&reg, width, height);
-    createWalls(&reg, width, height);
+
+    const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
+    defer std.heap.page_allocator.free(json);
+
+    debug("{s}", .{json});
+
+    const decoded_level = try serialiser.deserialiseLevel(json);
+    defer std.heap.page_allocator.free(decoded_level.rects);
+
+    decoded_level.to_ecs(&reg);
 
     rl.initWindow(width, height, "platformer");
     defer rl.closeWindow();
-    rl.setTargetFPS(240);
+    rl.setTargetFPS(1000);
 
     var last_frame_time = rl.getTime();
 
@@ -35,8 +46,9 @@ pub fn main() !void {
         defer rl.endDrawing();
 
         rl.drawFPS(width - 100, 10);
-
         rl.clearBackground(.black);
+
+        debug("Loop Completed, dt: {}", .{dt});
 
         systems.renderSystem(&reg);
     }
@@ -55,41 +67,27 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) void {
     reg.add(entity, comp.RenderTag{});
 }
 
-fn createGround(reg: *ecs.Registry, width: f32, height: f32) void {
-    const entity = reg.create();
-    const ground_height = 30;
+test "serialise level" {
+    var rects = [_]Rect{
+        .{ .x = 0, .y = 460, .width = 800, .height = 30 },
+        .{ .x = -10, .y = 0, .width = 40, .height = 500, .render = false },
+        .{ .x = 770, .y = 0, .width = 40, .height = 500, .render = false },
+        .{ .x = 500, .y = 420, .width = 200, .height = 500 },
+        .{ .x = 0, .y = 385, .width = 300, .height = 500 },
+    };
 
-    reg.add(entity, comp.Position.new(0, height + 10));
-    reg.add(entity, comp.Size.new(width, ground_height));
-    reg.add(entity, comp.Colour.new(0, 255, 0, 255));
-    reg.add(entity, comp.GroundTag{});
-    reg.add(entity, comp.RenderTag{});
-}
+    var level = Level{
+        .rects = &rects,
+    };
 
-fn createWalls(reg: *ecs.Registry, width: f32, height: f32) void {
-    const left_wall_entity = reg.create();
-    reg.add(left_wall_entity, comp.Position.new(0 - 10, 0));
-    reg.add(left_wall_entity, comp.Size.new(40, height + 50));
-    reg.add(left_wall_entity, comp.Colour.new(0, 255, 0, 255));
-    reg.add(left_wall_entity, comp.GroundTag{});
+    const json_str = try serialiser.serialiseLevel(&level);
+    defer std.heap.page_allocator.free(json_str);
+    debug("{s}\n", .{json_str});
+    try serialiser.writeJsonFile("levels/level_one.json", json_str);
 
-    const right_wall_entity = reg.create();
-    reg.add(right_wall_entity, comp.Position.new(width - 30, 0));
-    reg.add(right_wall_entity, comp.Size.new(40, height + 50));
-    reg.add(right_wall_entity, comp.Colour.new(0, 255, 0, 255));
-    reg.add(right_wall_entity, comp.GroundTag{});
+    const decoded_level = try serialiser.deserialiseLevel(json_str);
+    defer std.heap.page_allocator.free(decoded_level.rects);
 
-    const floater_entity = reg.create();
-    reg.add(floater_entity, comp.Position.new(500, 420));
-    reg.add(floater_entity, comp.Size.new(200, 500));
-    reg.add(floater_entity, comp.Colour.new(0, 255, 0, 255));
-    reg.add(floater_entity, comp.GroundTag{});
-    reg.add(floater_entity, comp.RenderTag{});
-
-    const floater_entity_two = reg.create();
-    reg.add(floater_entity_two, comp.Position.new(0, 385));
-    reg.add(floater_entity_two, comp.Size.new(300, 500));
-    reg.add(floater_entity_two, comp.Colour.new(0, 255, 0, 255));
-    reg.add(floater_entity_two, comp.GroundTag{});
-    reg.add(floater_entity_two, comp.RenderTag{});
+    try std.testing.expectEqual(level.rects.len, decoded_level.rects.len);
+    try std.testing.expectEqual(level.rects[0], decoded_level.rects[0]);
 }

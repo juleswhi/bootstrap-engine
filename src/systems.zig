@@ -49,7 +49,6 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
 
         if (jump.buffer_time > 0 and jump.can_jump) {
             vel.y = -500;
-            debug("Just Jumped @ {}", .{rl.getTime()});
             jump.buffer_time = 0;
             jump.coyote_time = 0;
         } else {
@@ -82,7 +81,7 @@ pub fn collisionSystem(reg: *ecs.Registry) void {
     }, .{});
 
     var ground_view = reg.view(.{
-        comp.GroundTag,
+        comp.EnvironmentTag,
         comp.Position,
         comp.Size,
     }, .{});

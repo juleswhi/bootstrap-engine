@@ -1,4 +1,5 @@
 const std = @import("std");
+const rl = @import("raylib");
 
 pub const LogLevel = enum {
     debug,
@@ -14,26 +15,21 @@ pub fn log(
     args: anytype,
 ) void {
     const level_info = switch (level) {
-        .debug => .{ .prefix = "DEBUG", .color = "\x1b[36m" }, // Cyan
-        .info  => .{ .prefix = "INFO ", .color = "\x1b[32m" }, // Green
-        .warn  => .{ .prefix = "WARN ", .color = "\x1b[33m" }, // Yellow
-        .err   => .{ .prefix = "ERROR", .color = "\x1b[31m" }, // Red
-        .fatal => .{ .prefix = "FATAL", .color = "\x1b[1;31m" }, // Bold Red
+        .debug => .{ .prefix = "DEBUG", .color = "\x1b[36m" },
+        .info  => .{ .prefix = "INFO ", .color = "\x1b[32m" },
+        .warn  => .{ .prefix = "WARN ", .color = "\x1b[33m" },
+        .err   => .{ .prefix = "ERROR", .color = "\x1b[31m" },
+        .fatal => .{ .prefix = "FATAL", .color = "\x1b[1;31m" },
     };
 
     const stderr = std.io.getStdErr().writer();
 
-    // Print colored prefix
-    stderr.print("{s}[{s}] ", .{level_info.color, level_info.prefix}) catch return;
+    stderr.print("{} :: {s}[{s}]\x1b[38;5;15m ", .{rl.getTime(), level_info.color, level_info.prefix}) catch return;
 
-    // Print user message with formatting
     stderr.print(fmt, args) catch return;
-
-    // Reset color and add newline
     stderr.writeAll("\x1b[0m\n") catch {};
 }
 
-// Optional: Convenience functions for each log level
 pub fn debug(comptime fmt: []const u8, args: anytype) void {
     log(.debug, fmt, args);
 }

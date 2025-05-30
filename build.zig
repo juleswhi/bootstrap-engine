@@ -43,6 +43,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .use_lld = false,
     });
 
     const run_cmd = b.addRunArtifact(exe);
