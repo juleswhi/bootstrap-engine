@@ -62,7 +62,9 @@ pub fn deserialiseLevel(str: []const u8) !Level {
         };
     }
 
-    return .{
+    log.debug("New Level: {s}", .{name});
+
+    return Level{
         .name = name,
         .start_x = @intCast(start_x),
         .start_y = @intCast(start_y),

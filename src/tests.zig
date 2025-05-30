@@ -13,7 +13,7 @@ test "serialise level one" {
     };
 
     var level = Level{
-        .name = "Level One".*,
+        .name = &"Level One".*,
         .start_x = 400,
         .start_y = 250,
         .rects = &rects,
@@ -41,7 +41,7 @@ test "serialise level two" {
     };
 
     var level = Level{
-        .name = "Level Two".*,
+        .name = &"Level Two".*,
         .start_x = 400,
         .start_y = 250,
         .rects = &rects,

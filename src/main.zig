@@ -22,7 +22,7 @@ pub fn main() !void {
 
     debug("{s}", .{json});
 
-    const level = try serialiser.deserialiseLevel(json);
+    var level = try serialiser.deserialiseLevel(json);
     defer std.heap.page_allocator.free(level.rects);
 
     level.add_ecs(&reg);

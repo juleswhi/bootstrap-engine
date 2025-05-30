@@ -13,20 +13,25 @@ pub const Rect = struct {
 };
 
 pub const Level = struct {
-    name: [:0]const u8,
+    name: []const u8,
     start_x: i32,
     start_y: i32,
     rects: []Rect,
 
     pub fn free(level: *Level) void {
         std.heap.page_allocator.free(level.rects);
-        log.debug("Freeing Level Memory", .{});
     }
 
-    pub fn load(level: *const Level, reg: *ecs.Registry) void {
+    pub fn load(level: *Level, reg: *ecs.Registry) void {
         var old_view = reg.view(.{comp.Position}, .{comp.PlayerTag});
         var old_iter = old_view.entityIterator();
         while (old_iter.next()) |e| {
+            reg.destroy(e);
+        }
+
+        var level_view = reg.view(.{ comp.LevelTag }, .{});
+        var level_iter = level_view.entityIterator();
+        while(level_iter.next()) |e| {
             reg.destroy(e);
         }
 
@@ -44,11 +49,10 @@ pub const Level = struct {
         }
     }
 
-    pub fn add_ecs(level: *const Level, reg: *ecs.Registry) void {
+    pub fn add_ecs(level: *Level, reg: *ecs.Registry) void {
         const level_entity = reg.create();
-        reg.add(comp.LevelTag{ .level = &level }, level_entity);
+        reg.add(level_entity, comp.LevelTag{ .level = level });
         for (level.rects) |rect| {
-            log.debug("Rect render is: {}", .{rect.render});
             const e = reg.create();
             reg.add(e, comp.Position.new(rect.x, rect.y));
             reg.add(e, comp.Size.new(rect.width, rect.height));
