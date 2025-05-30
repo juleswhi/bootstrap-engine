@@ -62,6 +62,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+    run_exe_unit_tests.addFileInput(b.path("src/tests.zig"));
 
     const check = b.step("check", "Check if foo compiles");
     check.dependOn(&exe_check.step);

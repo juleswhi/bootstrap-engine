@@ -13,6 +13,9 @@ pub const Rect = struct {
 };
 
 pub const Level = struct {
+    name: [:0]const u8,
+    start_x: i32,
+    start_y: i32,
     rects: []Rect,
 
     pub fn free(level: *Level) void {
@@ -20,8 +23,30 @@ pub const Level = struct {
         log.debug("Freeing Level Memory", .{});
     }
 
-    // Will prolly need to refactor if supporting multiple screen resolutions
-    pub fn to_ecs(level: *const Level, reg: *ecs.Registry) void {
+    pub fn load(level: *const Level, reg: *ecs.Registry) void {
+        var old_view = reg.view(.{comp.Position}, .{comp.PlayerTag});
+        var old_iter = old_view.entityIterator();
+        while (old_iter.next()) |e| {
+            reg.destroy(e);
+        }
+
+        var player_view = reg.view(.{ comp.PlayerTag, comp.Position, comp.Velocity }, .{});
+        var player_iter = player_view.entityIterator();
+        while (player_iter.next()) |e| {
+            var pos = reg.get(comp.Position, e);
+            var vel = reg.get(comp.Velocity, e);
+            pos.x = toFloat(level.start_x);
+            pos.y = toFloat(level.start_y);
+            vel.x = 0;
+            vel.y = 0;
+
+            level.add_ecs(reg);
+        }
+    }
+
+    pub fn add_ecs(level: *const Level, reg: *ecs.Registry) void {
+        const level_entity = reg.create();
+        reg.add(comp.LevelTag{ .level = &level }, level_entity);
         for (level.rects) |rect| {
             log.debug("Rect render is: {}", .{rect.render});
             const e = reg.create();
@@ -35,3 +60,11 @@ pub const Level = struct {
         }
     }
 };
+
+fn toInt(f: f32) i32 {
+    return @intFromFloat(f);
+}
+
+fn toFloat(i: i32) f32 {
+    return @floatFromInt(i);
+}

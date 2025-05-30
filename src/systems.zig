@@ -2,9 +2,11 @@ const std = @import("std");
 const ecs = @import("ecs");
 const comp = @import("components/components.zig");
 const rl = @import("raylib");
+const Level = @import("level.zig").Level;
+const serialiser = @import("serializer.zig");
 const debug = @import("log.zig").debug;
 
-pub fn inputSystem(reg: *ecs.Registry, dt: f32) void {
+pub fn inputSystem(reg: *ecs.Registry, dt: f32) !void {
     var view = reg.view(.{ comp.PlayerTag, comp.Velocity }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
@@ -13,6 +15,28 @@ pub fn inputSystem(reg: *ecs.Registry, dt: f32) void {
 
         if (rl.isKeyDown(.right) or rl.isKeyDown(.d)) vel.x = 500;
         if (rl.isKeyDown(.left) or rl.isKeyDown(.a)) vel.x = -500;
+        if (rl.isKeyPressed(.one)) {
+            const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
+            defer std.heap.page_allocator.free(json);
+
+            debug("{s}", .{json});
+
+            const level = try serialiser.deserialiseLevel(json);
+            defer std.heap.page_allocator.free(level.rects);
+
+            level.load(reg);
+        }
+        if (rl.isKeyPressed(.two)) {
+            const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_two.json");
+            defer std.heap.page_allocator.free(json);
+
+            debug("{s}", .{json});
+
+            const level = try serialiser.deserialiseLevel(json);
+            defer std.heap.page_allocator.free(level.rects);
+
+            level.load(reg);
+        }
     }
 
     jumpInputSystem(reg, dt);
@@ -195,6 +219,7 @@ pub fn gravitySystem(reg: *ecs.Registry, dt: f32) void {
 
 pub fn renderSystem(reg: *ecs.Registry) void {
     // renderGrounded(reg);
+    renderLevel(reg);
     var view = reg.view(.{ comp.RenderTag, comp.Position, comp.Size, comp.Colour }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
@@ -215,6 +240,15 @@ fn renderGrounded(reg: *ecs.Registry) void {
         const grounded = view.getConst(comp.Grounded, e);
         const text = if (grounded.value) "Grounded" else "Airborne";
         rl.drawText(text, 10, 10, 40, .white);
+    }
+}
+fn renderLevel(reg: *ecs.Registry) void {
+    var view = reg.view(.{ comp.LevelTag }, .{});
+    var iter = view.entityIterator();
+
+    while (iter.next()) |e| {
+        const level = view.getConst(e);
+        rl.drawText(level.level.name, 10, 10, 40, .white);
     }
 }
 

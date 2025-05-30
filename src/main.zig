@@ -7,6 +7,7 @@ const Level = @import("level.zig").Level;
 const Rect = @import("level.zig").Rect;
 const debug = @import("log.zig").debug;
 const serialiser = @import("serializer.zig");
+const tests = @import("tests.zig");
 
 pub fn main() !void {
     var reg = ecs.Registry.init(std.heap.page_allocator);
@@ -21,14 +22,14 @@ pub fn main() !void {
 
     debug("{s}", .{json});
 
-    const decoded_level = try serialiser.deserialiseLevel(json);
-    defer std.heap.page_allocator.free(decoded_level.rects);
+    const level = try serialiser.deserialiseLevel(json);
+    defer std.heap.page_allocator.free(level.rects);
 
-    decoded_level.to_ecs(&reg);
+    level.add_ecs(&reg);
 
-    rl.initWindow(width, height, "platformer");
+    rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
-    rl.setTargetFPS(1000);
+    rl.setTargetFPS(240);
 
     var last_frame_time = rl.getTime();
 
@@ -37,7 +38,7 @@ pub fn main() !void {
         const dt: f32 = @floatCast(current_time - last_frame_time);
         last_frame_time = current_time;
 
-        systems.inputSystem(&reg, dt);
+        try systems.inputSystem(&reg, dt);
         systems.gravitySystem(&reg, dt);
         systems.movementSystem(&reg, dt);
         systems.collisionSystem(&reg);
@@ -47,8 +48,6 @@ pub fn main() !void {
 
         rl.drawFPS(width - 100, 10);
         rl.clearBackground(.black);
-
-        debug("Loop Completed, dt: {}", .{dt});
 
         systems.renderSystem(&reg);
     }
@@ -67,27 +66,6 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) void {
     reg.add(entity, comp.RenderTag{});
 }
 
-test "serialise level" {
-    var rects = [_]Rect{
-        .{ .x = 0, .y = 460, .width = 800, .height = 30 },
-        .{ .x = -10, .y = 0, .width = 40, .height = 500, .render = false },
-        .{ .x = 770, .y = 0, .width = 40, .height = 500, .render = false },
-        .{ .x = 500, .y = 420, .width = 200, .height = 500 },
-        .{ .x = 0, .y = 385, .width = 300, .height = 500 },
-    };
-
-    var level = Level{
-        .rects = &rects,
-    };
-
-    const json_str = try serialiser.serialiseLevel(&level);
-    defer std.heap.page_allocator.free(json_str);
-    debug("{s}\n", .{json_str});
-    try serialiser.writeJsonFile("levels/level_one.json", json_str);
-
-    const decoded_level = try serialiser.deserialiseLevel(json_str);
-    defer std.heap.page_allocator.free(decoded_level.rects);
-
-    try std.testing.expectEqual(level.rects.len, decoded_level.rects.len);
-    try std.testing.expectEqual(level.rects[0], decoded_level.rects[0]);
+test {
+    _ = tests;
 }

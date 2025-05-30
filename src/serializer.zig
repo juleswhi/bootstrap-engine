@@ -45,6 +45,9 @@ pub fn deserialiseLevel(str: []const u8) !Level {
     ) catch unreachable;
 
     const array = parser.object.get("rects").?.array;
+    const name = parser.object.get("name").?.string;
+    const start_x = parser.object.get("start_x").?.integer;
+    const start_y = parser.object.get("start_y").?.integer;
 
     const rects = try std.heap.page_allocator.alloc(Rect, array.items.len);
 
@@ -60,6 +63,9 @@ pub fn deserialiseLevel(str: []const u8) !Level {
     }
 
     return .{
+        .name = name,
+        .start_x = @intCast(start_x),
+        .start_y = @intCast(start_y),
         .rects = rects,
     };
 }
