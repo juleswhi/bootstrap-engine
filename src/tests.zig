@@ -4,12 +4,14 @@ const serialiser = @import("serializer.zig");
 const std = @import("std");
 const debug = @import("log.zig").debug;
 
+test "Serialise Level One" {
+    const screen_width = 1500;
+    const screen_height = 800;
 
-test "serialise level one" {
     var rects = [_]Rect{
-        .{ .x = 0, .y = 460, .width = 800, .height = 30 },
-        .{ .x = -10, .y = 0, .width = 40, .height = 500, .render = false },
-        .{ .x = 760, .y = 0, .width = 40, .height = 500, .render = false },
+        .{ .x = 0, .y = screen_height - 30, .width = screen_width, .height = 30 },
+        .{ .x = -10, .y = 0, .width = 40, .height = screen_height, .render = false },
+        .{ .x = screen_width - 30, .y = 0, .width = 40, .height = screen_height, .render = false },
     };
 
     var level = Level{
@@ -31,15 +33,14 @@ test "serialise level one" {
     try std.testing.expectEqual(level.rects[0], decoded_level.rects[0]);
 }
 
-test "serialise level two" {
+test "Serialise Level Two" {
     var rects = [_]Rect{
-        .{ .x = 0, .y = 460, .width = 800, .height = 30 },
-        .{ .x = -10, .y = 0, .width = 40, .height = 500, .render = false },
-        .{ .x = 770, .y = 0, .width = 40, .height = 500, .render = false },
-        .{ .x = 500, .y = 420, .width = 200, .height = 500 },
-        .{ .x = 0, .y = 385, .width = 300, .height = 500 },
+        .{ .x = 0, .y = 810, .width = 1500, .height = 53 },
+        .{ .x = -19, .y = 0, .width = 75, .height = 889, .render = false },
+        .{ .x = 1444, .y = 0, .width = 75, .height = 889, .render = false },
+        .{ .x = 938, .y = 747, .width = 375, .height = 889 },
+        .{ .x = 0, .y = 684, .width = 563, .height = 889 },
     };
-
     var level = Level{
         .name = &"Level Two".*,
         .start_x = 400,

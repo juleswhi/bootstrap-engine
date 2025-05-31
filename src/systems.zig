@@ -14,8 +14,8 @@ pub fn inputSystem(reg: *ecs.Registry, dt: f32) !void {
         const prev_vel = vel.x;
         vel.x = 0;
 
-        if (rl.isKeyDown(.right) or rl.isKeyDown(.d)) vel.x = @max(500, prev_vel);
-        if (rl.isKeyDown(.left) or rl.isKeyDown(.a)) vel.x = -1 * @max(500, prev_vel);
+        if (rl.isKeyDown(.right) or rl.isKeyDown(.d)) vel.x = @max(500, @abs(prev_vel));
+        if (rl.isKeyDown(.left) or rl.isKeyDown(.a)) vel.x = -1 * @max(500, @abs(prev_vel));
     }
 
     try levelSelectSystem(reg);
@@ -71,7 +71,7 @@ fn dodgeInputSystem(reg: *ecs.Registry) void {
 }
 
 pub fn dodgeSystem(reg: *ecs.Registry, dt: f32) void {
-    var view = reg.view(.{ comp.Velocity, comp.Dodge, comp.Colour }, .{});
+    var view = reg.view(.{ comp.Velocity, comp.Dodge, comp.Colour, comp.Size }, .{});
     var iter = view.entityIterator();
 
     while (iter.next()) |e| {
@@ -80,13 +80,18 @@ pub fn dodgeSystem(reg: *ecs.Registry, dt: f32) void {
         var col = view.get(comp.Colour, e);
 
         if (dodge.is_dodging) {
-            col.a = 125;
-            vel.x = dodge.direction * dodge.speed;
+            const progress = (dodge.remaining_time / dodge.duration);
+
+            col.a = 100;
+            vel.x = dodge.direction * @max((dodge.speed * progress), 500);
             dodge.remaining_time -= dt;
+
             if (dodge.remaining_time <= 0) {
                 dodge.is_dodging = false;
                 dodge.cooldown_timer = dodge.cooldown;
+                dodge.has_stored_size = false;
             }
+
         } else if (dodge.cooldown_timer > 0) {
             col.a = 175;
             dodge.cooldown_timer -= dt;
@@ -94,6 +99,10 @@ pub fn dodgeSystem(reg: *ecs.Registry, dt: f32) void {
             col.a = 255;
         }
     }
+}
+
+pub fn lerp(a: f32, b: f32, t: f32) f32 {
+    return a + t * (b - a);
 }
 
 fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
@@ -126,7 +135,7 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
         }
 
         if (jump.buffer_time > 0 and jump.can_jump) {
-            vel.y = -500;
+            vel.y = -650;
             jump.buffer_time = 0;
             jump.coyote_time = 0;
         } else {

@@ -12,8 +12,8 @@ const tests = @import("tests.zig");
 pub fn main() !void {
     var reg = ecs.Registry.init(std.heap.page_allocator);
 
-    const width = 800;
-    const height = 450;
+    const width = 1500;
+    const height = 800;
 
     createPlayer(&reg, width, height);
 
