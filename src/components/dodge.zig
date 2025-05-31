@@ -7,8 +7,4 @@ pub const Dodge = struct {
     speed: f32 = 1200,
     cooldown: f32 = 0.5,
     cooldown_timer: f32 = 0,
-
-    original_width: f32 = 0,
-    original_height: f32 = 0,
-    has_stored_size: bool = false,
 };

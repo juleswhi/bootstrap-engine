@@ -8,14 +8,11 @@ pub fn readJsonFile(allocator: std.mem.Allocator, file_path: []const u8) ![]cons
     const file = try std.fs.cwd().openFile(file_path, .{});
     defer file.close();
 
-    // Get file size
     const file_size = (try file.stat()).size;
 
-    // Allocate buffer for file content
     const buffer = try allocator.alloc(u8, @intCast(file_size));
     errdefer allocator.free(buffer);
 
-    // Read entire file
     const bytes_read = try file.readAll(buffer);
     if (bytes_read != file_size) {
         return error.UnexpectedEndOfFile;

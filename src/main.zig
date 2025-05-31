@@ -2,11 +2,11 @@ const ecs = @import("ecs");
 const std = @import("std");
 const rl = @import("raylib");
 const comp = @import("components/components.zig");
-const systems = @import("systems.zig");
 const Level = @import("level.zig").Level;
 const Rect = @import("level.zig").Rect;
 const debug = @import("log.zig").debug;
 const serialiser = @import("serializer.zig");
+const systems = @import("systems.zig");
 const tests = @import("tests.zig");
 
 pub fn main() !void {
@@ -36,11 +36,11 @@ pub fn main() !void {
         const dt: f32 = @floatCast(current_time - last_frame_time);
         last_frame_time = current_time;
 
-        try systems.inputSystem(&reg, dt);
-        systems.dodgeSystem(&reg, dt);
-        systems.gravitySystem(&reg, dt);
-        systems.movementSystem(&reg, dt);
-        systems.collisionSystem(&reg);
+        try systems.Input(&reg, dt);
+        systems.Dodge(&reg, dt);
+        systems.Gravity(&reg, dt);
+        systems.Movement(&reg, dt);
+        systems.Collision(&reg);
 
         rl.beginDrawing();
         defer rl.endDrawing();
@@ -48,7 +48,7 @@ pub fn main() !void {
         rl.drawFPS(width - 100, 10);
         rl.clearBackground(.black);
 
-        systems.renderSystem(&reg);
+        systems.Render(&reg);
     }
 }
 
@@ -58,7 +58,7 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) void {
     reg.add(entity, comp.Velocity.new(0, 0));
     reg.add(entity, comp.Size.new(25, 40));
     reg.add(entity, comp.Colour.new(255, 255, 255, 255));
-    reg.add(entity, comp.Dodge{});
+    reg.add(entity, comp.Dodge{ .speed = 1500 });
     reg.add(entity, comp.Jump{});
     reg.add(entity, comp.Grounded{});
     reg.add(entity, comp.PlayerTag{});
