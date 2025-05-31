@@ -6,7 +6,7 @@ const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
-pub fn movementSystem(reg: *ecs.Registry, dt: f32) void {
+pub fn movement(reg: *ecs.Registry, dt: f32) void {
     var view = reg.view(.{ comp.Position, comp.Velocity }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {

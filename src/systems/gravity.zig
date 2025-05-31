@@ -8,7 +8,7 @@ const debug = @import("../log.zig").debug;
 
 const GRAVITY_ACCEL = 2000;
 
-pub fn gravitySystem(reg: *ecs.Registry, dt: f32) void {
+pub fn gravity(reg: *ecs.Registry, dt: f32) void {
     var view = reg.view(.{ comp.GravityTag, comp.Velocity, comp.Grounded }, .{});
     var iter = view.entityIterator();
 

@@ -7,6 +7,8 @@ pub const Colour = @import("colour.zig").Colour;
 pub const Grounded = @import("grounded.zig").Grounded;
 pub const Jump = @import("jump.zig").Jump;
 pub const Dodge = @import("dodge.zig").Dodge;
+pub const Sprite = @import("sprite.zig").Sprite;
+pub const Animate = @import("animate.zig").PlayerAnimate;
 
 pub const LevelTag = struct { level: *Level };
 pub const PlayerTag = struct {};

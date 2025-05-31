@@ -8,6 +8,8 @@ const debug = @import("log.zig").debug;
 const serialiser = @import("serializer.zig");
 const systems = @import("systems.zig");
 const tests = @import("tests.zig");
+const loadTextures = @import("systems/animate.zig").loadTextures;
+const unloadTextures = @import("systems/animate.zig").unloadTextures;
 
 pub fn main() !void {
     var reg = ecs.Registry.init(std.heap.page_allocator);
@@ -25,22 +27,29 @@ pub fn main() !void {
 
     level.add_ecs(&reg);
 
+
     rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
     rl.setTargetFPS(240);
 
+
+    try loadTextures(&reg);
+
+    var frame_counter: u32 = 0;
     var last_frame_time = rl.getTime();
 
     while (!rl.windowShouldClose()) {
         const current_time = rl.getTime();
         const dt: f32 = @floatCast(current_time - last_frame_time);
         last_frame_time = current_time;
+        frame_counter += 1;
 
         try systems.Input(&reg, dt);
         systems.Dodge(&reg, dt);
         systems.Gravity(&reg, dt);
         systems.Movement(&reg, dt);
         systems.Collision(&reg);
+        systems.Animate(&reg, &frame_counter);
 
         rl.beginDrawing();
         defer rl.endDrawing();
@@ -50,6 +59,8 @@ pub fn main() !void {
 
         systems.Render(&reg);
     }
+
+    try unloadTextures(&reg);
 }
 
 fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) void {
@@ -59,11 +70,11 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) void {
     reg.add(entity, comp.Size.new(25, 40));
     reg.add(entity, comp.Colour.new(255, 255, 255, 255));
     reg.add(entity, comp.Dodge{ .speed = 1500 });
+    reg.add(entity, comp.Animate{});
     reg.add(entity, comp.Jump{});
     reg.add(entity, comp.Grounded{});
     reg.add(entity, comp.PlayerTag{});
     reg.add(entity, comp.GravityTag{});
-    reg.add(entity, comp.RenderTag{});
 }
 
 test {

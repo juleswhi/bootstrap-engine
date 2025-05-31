@@ -6,31 +6,31 @@ const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
-pub fn dodgeSystem(reg: *ecs.Registry, dt: f32) void {
+pub fn dodge(reg: *ecs.Registry, dt: f32) void {
     var view = reg.view(.{ comp.Velocity, comp.Dodge, comp.Colour, comp.Size }, .{});
     var iter = view.entityIterator();
 
     while (iter.next()) |e| {
         var vel = view.get(comp.Velocity, e);
-        var dodge = view.get(comp.Dodge, e);
+        var dodge_comp = view.get(comp.Dodge, e);
         var col = view.get(comp.Colour, e);
 
-        if (dodge.is_dodging) {
-            const progress = (dodge.remaining_time / dodge.duration);
+        if (dodge_comp.is_dodging) {
+            const progress = (dodge_comp.remaining_time / dodge_comp.duration);
 
             col.a = 100;
-            vel.x = dodge.direction * @max((dodge.speed * progress), 500);
-            dodge.remaining_time -= dt;
+            vel.x = dodge_comp.direction * @max((dodge_comp.speed * progress), 500);
+            dodge_comp.remaining_time -= dt;
 
-            if (dodge.remaining_time <= 0) {
-                dodge.is_dodging = false;
-                dodge.cooldown_timer = dodge.cooldown;
+            if (dodge_comp.remaining_time <= 0) {
+                dodge_comp.is_dodging = false;
+                dodge_comp.cooldown_timer = dodge_comp.cooldown;
             }
 
-        } else if (dodge.cooldown_timer > 0) {
+        } else if (dodge_comp.cooldown_timer > 0) {
             col.a = 175;
             vel.x = sign(vel.x) * @min(@abs(vel.x), 500);
-            dodge.cooldown_timer -= dt;
+            dodge_comp.cooldown_timer -= dt;
         } else {
             col.a = 255;
         }

@@ -5,7 +5,7 @@ const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
-pub fn inputSystem(reg: *ecs.Registry, dt: f32) !void {
+pub fn input(reg: *ecs.Registry, dt: f32) !void {
     var view = reg.view(.{ comp.PlayerTag, comp.Velocity, comp.Dodge }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {

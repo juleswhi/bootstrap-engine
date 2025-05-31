@@ -6,7 +6,7 @@ const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
-pub fn collisionSystem(reg: *ecs.Registry) void {
+pub fn collision(reg: *ecs.Registry) void {
     const COLLIDER_TOLERANCE: f32 = 0.2;
 
     var collider_view = reg.view(.{
