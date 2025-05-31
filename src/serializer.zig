@@ -12,7 +12,7 @@ pub fn readJsonFile(allocator: std.mem.Allocator, file_path: []const u8) ![]cons
     const file_size = (try file.stat()).size;
 
     // Allocate buffer for file content
-    const buffer = try allocator.alloc(u8, file_size);
+    const buffer = try allocator.alloc(u8, @intCast(file_size));
     errdefer allocator.free(buffer);
 
     // Read entire file
