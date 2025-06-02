@@ -29,6 +29,7 @@ pub fn main() !void {
 
     rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
+
     rl.setTargetFPS(240);
 
     try loadTextures(&reg);
@@ -65,7 +66,7 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     const entity = reg.create();
     reg.add(entity, comp.Position.new(width / 2, 10));
     reg.add(entity, comp.Velocity.new(0, 0));
-    reg.add(entity, comp.Size.new(150, 285));
+    reg.add(entity, comp.Size.new(80, 80 * 1.9));
     reg.add(entity, comp.Colour.new(255, 255, 255, 255));
     reg.add(entity, comp.Dodge{ .speed = 1500 });
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
