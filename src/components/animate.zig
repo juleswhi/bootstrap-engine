@@ -1,18 +1,27 @@
+const std = @import("std");
 const rl = @import("raylib");
+const Sprite = @import("sprite.zig").Sprite;
 
-pub const PlayerAnimateState = union(enum) {
-    idle: i32,
-    run: i32,
+pub const AnimateType = enum {
+    idle,
 };
 
-pub const PlayerAnimate = struct {
-    idle_texture: ?rl.Texture2D = null,
-    run_texture: ?rl.Texture2D = null,
-    idle_rec: rl.Rectangle = rl.Rectangle{ .x = 0, .y = 0, .width = 0, .height = 0 },
-    run_rec: rl.Rectangle = rl.Rectangle{ .x = 0, .y = 0, .width = 0, .height = 0 },
-    state: PlayerAnimateState = .{ .idle = 0 },
-    frame_speed: u32 = 6,
-    idle_frames: i32 = 10,
-    run_frames: i32 = 16,
-    accumulator: f32 = 0.0,
+pub const Animate = struct {
+    sprites: []Sprite,
+    type: AnimateType = .idle,
+    frame_speed: u32 = 3,
+
+    pub fn get_sprite(self: *Animate) *Sprite {
+        const name: [:0]const u8 = switch (self.type) {
+            .idle => "idle",
+        };
+
+        for (self.sprites) |*s| {
+            if (std.mem.eql(u8, name, s.name)) {
+                return s;
+            }
+        }
+
+        return &self.sprites[0];
+    }
 };

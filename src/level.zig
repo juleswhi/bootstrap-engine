@@ -29,9 +29,9 @@ pub const Level = struct {
             reg.destroy(e);
         }
 
-        var level_view = reg.view(.{ comp.LevelTag }, .{});
+        var level_view = reg.view(.{comp.LevelTag}, .{});
         var level_iter = level_view.entityIterator();
-        while(level_iter.next()) |e| {
+        while (level_iter.next()) |e| {
             reg.destroy(e);
         }
 
@@ -57,6 +57,7 @@ pub const Level = struct {
             reg.add(e, comp.Position.new(rect.x, rect.y));
             reg.add(e, comp.Size.new(rect.width, rect.height));
             reg.add(e, comp.Colour.new(0, 255, 0, 255));
+            reg.add(e, comp.RectangleTag{});
             reg.add(e, comp.EnvironmentTag{});
             if (rect.render) {
                 reg.add(e, comp.RenderTag{});

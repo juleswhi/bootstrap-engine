@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const exe = b.addExecutable(.{
-        .name = "raylib_zig_platformer",
+        .name = "boostrap",
         .root_module = exe_mod,
     });
 

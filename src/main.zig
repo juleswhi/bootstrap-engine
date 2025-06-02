@@ -17,7 +17,7 @@ pub fn main() !void {
     const width = 1500;
     const height = 800;
 
-    createPlayer(&reg, width, height);
+    try createPlayer(&reg, width, height);
 
     const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
     defer std.heap.page_allocator.free(json);
@@ -27,11 +27,9 @@ pub fn main() !void {
 
     level.add_ecs(&reg);
 
-
     rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
     rl.setTargetFPS(240);
-
 
     try loadTextures(&reg);
 
@@ -63,18 +61,27 @@ pub fn main() !void {
     try unloadTextures(&reg);
 }
 
-fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) void {
+fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     const entity = reg.create();
     reg.add(entity, comp.Position.new(width / 2, 10));
     reg.add(entity, comp.Velocity.new(0, 0));
-    reg.add(entity, comp.Size.new(25, 40));
+    reg.add(entity, comp.Size.new(150, 285));
     reg.add(entity, comp.Colour.new(255, 255, 255, 255));
     reg.add(entity, comp.Dodge{ .speed = 1500 });
-    reg.add(entity, comp.Animate{});
+    var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
+    try sprite_list.append(comp.Sprite.new("idle", "assets/knight/sprites/_Idle.png", 10, 20, 38, 25));
+    reg.add(entity, comp.Animate{ .sprites = try sprite_list.toOwnedSlice() });
     reg.add(entity, comp.Jump{});
     reg.add(entity, comp.Grounded{});
     reg.add(entity, comp.PlayerTag{});
     reg.add(entity, comp.GravityTag{});
+    reg.add(entity, comp.RenderTag{});
+}
+
+fn createOverlay(reg: *ecs.Registry) void {
+    const e = reg.create();
+    reg.add(e, comp.OverlayTag{ .active = false });
+    reg.add(e, comp.NullTag{});
 }
 
 test {

@@ -34,6 +34,13 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
     try levelInputSystem(reg);
     dodgeInputSystem(reg);
     jumpInputSystem(reg, dt);
+    overlayInputSystem();
+}
+
+fn overlayInputSystem() void {
+    if (rl.isKeyPressed(.o)) {
+        comp.OverlayTag.toggle();
+    }
 }
 
 fn levelInputSystem(reg: *ecs.Registry) !void {

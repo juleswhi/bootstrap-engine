@@ -7,7 +7,9 @@ const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
 pub fn render(reg: *ecs.Registry) void {
-    var view = reg.view(.{ comp.RenderTag, comp.Position, comp.Size, comp.Colour }, .{});
+    rl.beginBlendMode(rl.BlendMode.alpha);
+    defer rl.endBlendMode();
+    var view = reg.view(.{ comp.RenderTag, comp.RectangleTag, comp.Position, comp.Size, comp.Colour }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const pos = view.getConst(comp.Position, e);
@@ -19,6 +21,10 @@ pub fn render(reg: *ecs.Registry) void {
     }
 
     animateRender(reg);
+
+    if (comp.OverlayTag.active) {
+        animateFullRender(reg);
+    }
 }
 
 fn groundedRender(reg: *ecs.Registry) void {
@@ -32,29 +38,69 @@ fn groundedRender(reg: *ecs.Registry) void {
     }
 }
 
-fn animateRender(reg: *ecs.Registry) void {
-    var view = reg.view(.{ comp.Animate, comp.PlayerTag }, .{});
+fn animateFullRender(reg: *ecs.Registry) void {
+    var view = reg.view(.{ comp.RenderTag, comp.Animate, comp.PlayerTag, comp.Size, comp.Position }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate = view.get(comp.Animate, e);
         const pos = view.get(comp.Position, e);
+        const size = view.get(comp.Size, e);
+        const sprite = animate.get_sprite();
 
-        const texture = switch (animate.state) {
-            .idle => animate.idle_texture,
-            .run => animate.run_texture,
-        };
+        rl.drawTexture(sprite.texture.?, 0, 0, .white);
 
-        const rect: rl.Rectangle = switch (animate.state) {
-            .idle => animate.idle_rec,
-            .run => animate.run_rec,
-        };
+        for (0..sprite.num_frames) |frame| {
+            rl.drawRectangleLines(
+                toInt(toFloat(frame) * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)) +
+                    (sprite.rectangle.width + toFloat(sprite.padding))),
+                toInt(toFloat(sprite.texture.?.height) - 38),
+                20,
+                38,
+                if (sprite.current_frame == toFloat(frame)) .blue else .white,
+            );
+        }
 
-        const new_pos = comp.Position.new(pos.x - 35, pos.y - 40);
-
-        rl.drawTextureRec(texture.?, rect, new_pos.toVector(), .white);
+        rl.drawRectangleLines(
+            toInt(pos.x),
+            toInt(pos.y),
+            toInt(size.width),
+            toInt(size.height),
+            .red,
+        );
     }
 }
 
+fn animateRender(reg: *ecs.Registry) void {
+    var view = reg.view(.{ comp.Animate, comp.PlayerTag, comp.Size, comp.Position }, .{});
+    var iter = view.entityIterator();
+    while (iter.next()) |e| {
+        const animate = view.get(comp.Animate, e);
+        const pos = view.get(comp.Position, e);
+        const size = view.get(comp.Size, e);
+
+        const sprite = animate.get_sprite();
+
+        const dest_rect = rl.Rectangle{
+            .x = pos.x,
+            .y = pos.y,
+            .width = size.width,
+            .height = size.height,
+        };
+
+        rl.drawTexturePro(
+            sprite.texture.?,
+            sprite.rectangle,
+            dest_rect,
+            rl.Vector2{ .x = 0, .y = 0 },
+            0,
+            rl.Color{ .r = 255, .g = 255, .b = 255, .a = 255 },
+        );
+    }
+}
+
+fn toFloat(x: anytype) f32 {
+    return @floatFromInt(x);
+}
 fn toInt(f: f32) i32 {
     return @intFromFloat(f);
 }

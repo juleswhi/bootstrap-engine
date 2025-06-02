@@ -11,25 +11,20 @@ pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate_comp = view.get(comp.Animate, e);
-        if (frame_counter.* >= (60 / animate_comp.frame_speed)) {
-            frame_counter.* = 0;
-            switch (animate_comp.state) {
-                .idle => |*frame| {
-                    frame.* += 1;
-                    if (frame.* > animate_comp.idle_frames - 1) {
-                        frame.* = 0;
-                    }
-                    animate_comp.idle_rec.x = (toFloat(frame.*)) * (animate_comp.idle_rec.width);
-                },
-                .run => |*frame| {
-                    frame.* += 1;
-                    if (frame.* > animate_comp.run_frames - 1) {
-                        frame.* = 0;
-                    }
-                    animate_comp.run_rec.x = (toFloat(frame.*)) * (animate_comp.run_rec.width);
-                },
-            }
+
+        if (!(frame_counter.* >= (60 / animate_comp.frame_speed))) continue;
+        frame_counter.* = 0;
+
+        const sprite = animate_comp.get_sprite();
+        sprite.current_frame += 1;
+
+        if (sprite.current_frame > toFloat(sprite.num_frames - 1)) {
+            sprite.current_frame = 0;
         }
+
+        sprite.rectangle.x =
+            (sprite.current_frame * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)) +
+                (sprite.rectangle.width + toFloat(sprite.padding)));
     }
 }
 
@@ -38,21 +33,17 @@ pub fn loadTextures(reg: *ecs.Registry) !void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate_comp = reg.get(comp.Animate, e);
-        // Fix to use sentinal but cant be arsed
-        animate_comp.idle_texture = try rl.loadTexture("assets/samurai/idle.png");
-        animate_comp.run_texture = try rl.loadTexture("assets/samurai/run.png");
-        animate_comp.idle_rec = rl.Rectangle{
-            .x = 0,
-            .y = 0,
-            .width = toFloat(animate_comp.idle_texture.?.width) / toFloat(animate_comp.idle_frames),
-            .height = toFloat(animate_comp.idle_texture.?.height),
-        };
-        animate_comp.run_rec = rl.Rectangle{
-            .x = 0,
-            .y = 0,
-            .width = toFloat(animate_comp.run_texture.?.width) / toFloat(animate_comp.run_frames),
-            .height = toFloat(animate_comp.run_texture.?.height),
-        };
+
+        for (animate_comp.sprites) |*s| {
+            s.texture = try rl.loadTexture(s.texture_path);
+
+            s.rectangle = rl.Rectangle{
+                .x = 0,
+                .y = toFloat(s.texture.?.height) - toFloat(s.height),
+                .width = toFloat(s.width),
+                .height = toFloat(s.height),
+            };
+        }
     }
 }
 
@@ -61,11 +52,17 @@ pub fn unloadTextures(reg: *ecs.Registry) !void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate_comp = reg.get(comp.Animate, e);
-        rl.unloadTexture(animate_comp.idle_texture.?);
-        rl.unloadTexture(animate_comp.run_texture.?);
+
+        for (animate_comp.sprites) |*s| {
+            rl.unloadTexture(s.texture.?);
+            debug("Unloaded texture for: {s}", .{s.name});
+        }
     }
 }
 
 fn toFloat(x: anytype) f32 {
     return @floatFromInt(x);
+}
+fn toInt(x: anytype) i32 {
+    return @intFromFloat(x);
 }
