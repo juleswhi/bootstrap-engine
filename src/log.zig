@@ -49,3 +49,4 @@ pub fn err(comptime fmt: []const u8, args: anytype) void {
 pub fn fatal(comptime fmt: []const u8, args: anytype) void {
     log(.fatal, fmt, args);
 }
+

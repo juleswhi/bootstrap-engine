@@ -1,8 +1,9 @@
 const std = @import("std");
 const json = std.json;
 const Level = @import("level.zig").Level;
-const Rect = @import("level.zig").Rect;
+const LevelRectangle = @import("level.zig").LevelRectangle;
 const log = @import("log.zig");
+const Hitbox = @import("components/hitbox.zig").Hitbox;
 
 pub fn readJsonFile(allocator: std.mem.Allocator, file_path: []const u8) ![]const u8 {
     const file = try std.fs.cwd().openFile(file_path, .{});
@@ -46,15 +47,17 @@ pub fn deserialiseLevel(str: []const u8) !Level {
     const start_x = parser.object.get("start_x").?.integer;
     const start_y = parser.object.get("start_y").?.integer;
 
-    const rects = try std.heap.page_allocator.alloc(Rect, array.items.len);
+    const rects = try std.heap.page_allocator.alloc(LevelRectangle, array.items.len);
 
     for (array.items, 0..) |item, i| {
         const obj = item.object;
         rects[i] = .{
-            .x = @floatCast(obj.get("x").?.float),
-            .y = @floatCast(obj.get("y").?.float),
-            .width = @floatCast(obj.get("width").?.float),
-            .height = @floatCast(obj.get("height").?.float),
+            .hitbox = Hitbox{
+                .x = @floatCast(obj.get("hitbox").?.object.get("x").?.float),
+                .y = @floatCast(obj.get("hitbox").?.object.get("y").?.float),
+                .width = @floatCast(obj.get("hitbox").?.object.get("width").?.float),
+                .height = @floatCast(obj.get("hitbox").?.object.get("height").?.float),
+            },
             .render = obj.get("render").?.bool,
         };
     }

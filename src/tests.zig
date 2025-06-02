@@ -1,5 +1,6 @@
-const Rect = @import("level.zig").Rect;
 const Level = @import("level.zig").Level;
+const LevelRectangle = @import("level.zig").LevelRectangle;
+const Hitbox = @import("components/hitbox.zig").Hitbox;
 const serialiser = @import("serializer.zig");
 const std = @import("std");
 const debug = @import("log.zig").debug;
@@ -8,10 +9,10 @@ test "Serialise Level One" {
     const screen_width = 1500;
     const screen_height = 800;
 
-    var rects = [_]Rect{
-        .{ .x = 0, .y = screen_height - 30, .width = screen_width, .height = 30 },
-        .{ .x = -10, .y = 0, .width = 40, .height = screen_height, .render = false },
-        .{ .x = screen_width - 30, .y = 0, .width = 40, .height = screen_height, .render = false },
+    var rects = [_]LevelRectangle{
+        .{ .hitbox = Hitbox{ .x = 0, .y = screen_height + 10, .width = screen_width, .height = 30 }, .render = true },
+        .{ .hitbox = Hitbox{ .x = -10, .y = 0, .width = 40, .height = screen_height }, .render = false },
+        .{ .hitbox = Hitbox{ .x = screen_width - 30, .y = 0, .width = 40, .height = screen_height }, .render = false },
     };
 
     var level = Level{
@@ -34,13 +35,14 @@ test "Serialise Level One" {
 }
 
 test "Serialise Level Two" {
-    var rects = [_]Rect{
-        .{ .x = 0, .y = 810, .width = 1500, .height = 53 },
-        .{ .x = -19, .y = 0, .width = 75, .height = 889, .render = false },
-        .{ .x = 1444, .y = 0, .width = 75, .height = 889, .render = false },
-        .{ .x = 938, .y = 747, .width = 375, .height = 889 },
-        .{ .x = 0, .y = 684, .width = 563, .height = 889 },
+    var rects = [_]LevelRectangle{
+        .{ .hitbox = Hitbox{ .x = 0, .y = 810, .width = 1500, .height = 53 }, .render = true },
+        .{ .hitbox = Hitbox{ .x = -19, .y = 0, .width = 75, .height = 889 }, .render = true },
+        .{ .hitbox = Hitbox{ .x = 1444, .y = 0, .width = 75, .height = 889 }, .render = true },
+        .{ .hitbox = Hitbox{ .x = 938, .y = 747, .width = 375, .height = 889 }, .render = true },
+        .{ .hitbox = Hitbox{ .x = 0, .y = 684, .width = 563, .height = 889 }, .render = true },
     };
+
     var level = Level{
         .name = &"Level Two".*,
         .start_x = 400,

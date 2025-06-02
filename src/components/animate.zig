@@ -4,16 +4,19 @@ const Sprite = @import("sprite.zig").Sprite;
 
 pub const AnimateType = enum {
     idle,
+    run,
 };
 
 pub const Animate = struct {
     sprites: []Sprite,
-    type: AnimateType = .idle,
+    type: AnimateType = .run,
     frame_speed: u32 = 3,
+    direction: i8 = 1,
 
     pub fn get_sprite(self: *Animate) *Sprite {
         const name: [:0]const u8 = switch (self.type) {
             .idle => "idle",
+            .run => "run",
         };
 
         for (self.sprites) |*s| {

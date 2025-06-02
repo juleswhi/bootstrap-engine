@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const exe = b.addExecutable(.{
-        .name = "boostrap",
+        .name = "bootstrap",
         .root_module = exe_mod,
     });
 

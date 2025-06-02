@@ -9,87 +9,109 @@ const debug = @import("../log.zig").debug;
 pub fn render(reg: *ecs.Registry) void {
     rl.beginBlendMode(rl.BlendMode.alpha);
     defer rl.endBlendMode();
-    var view = reg.view(.{ comp.RenderTag, comp.RectangleTag, comp.Position, comp.Size, comp.Colour }, .{});
+    var view = reg.view(.{ comp.Hitbox, comp.Colour, comp.Environment }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
-        const pos = view.getConst(comp.Position, e);
-        const size = view.getConst(comp.Size, e);
+        const env = view.getConst(comp.Environment, e);
+        if (!env.render) continue;
         const color = view.getConst(comp.Colour, e);
+        const hitbox = view.getConst(comp.Hitbox, e);
         const rl_colour = color.toRaylib();
 
-        rl.drawRectangle(toInt(pos.x), toInt(pos.y), toInt(size.width), toInt(size.height), rl_colour);
+        rl.drawRectangle(toInt(hitbox.x), toInt(hitbox.y), toInt(hitbox.width), toInt(hitbox.height), rl_colour);
     }
 
     animateRender(reg);
 
-    if (comp.OverlayTag.active) {
-        animateFullRender(reg);
+    if (comp.Debug.active) {
+        debugRender(reg);
     }
 }
 
-fn groundedRender(reg: *ecs.Registry) void {
-    var view = reg.view(.{ comp.PlayerTag, comp.Grounded }, .{});
-    var iter = view.entityIterator();
-
-    while (iter.next()) |e| {
-        const grounded = view.getConst(comp.Grounded, e);
-        const text = if (grounded.value) "Grounded" else "Airborne";
-        rl.drawText(text, 10, 10, 40, .white);
-    }
-}
-
-fn animateFullRender(reg: *ecs.Registry) void {
-    var view = reg.view(.{ comp.RenderTag, comp.Animate, comp.PlayerTag, comp.Size, comp.Position }, .{});
+fn debugRender(reg: *ecs.Registry) void {
+    var view = reg.view(.{ comp.Animate, comp.Hitbox, comp.Canvas }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate = view.get(comp.Animate, e);
-        const pos = view.get(comp.Position, e);
-        const size = view.get(comp.Size, e);
+        const hitbox = view.get(comp.Hitbox, e);
+        const velocity = view.get(comp.Velocity, e);
+        const canvas = view.get(comp.Canvas, e);
         const sprite = animate.get_sprite();
+
+        rl.drawText("Debug Mode", 10, 150, 20, .white);
+
+        const vel_x = toSentinel(.{toInt(velocity.x)});
+        defer std.heap.page_allocator.free(vel_x);
+        const vel_y = toSentinel(.{toInt(velocity.y)});
+        defer std.heap.page_allocator.free(vel_y);
+        rl.drawText(vel_x, 10, 170, 20, .white);
+        rl.drawText(vel_y, 10, 190, 20, .white);
 
         rl.drawTexture(sprite.texture.?, 0, 0, .white);
 
         for (0..sprite.num_frames) |frame| {
+            const x = toInt(toFloat(frame) * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)));
             rl.drawRectangleLines(
-                toInt(toFloat(frame) * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)) +
-                    (sprite.rectangle.width + toFloat(sprite.padding))),
-                toInt(toFloat(sprite.texture.?.height) - 38),
-                20,
-                38,
+                x,
+                0,
+                sprite.texture.?.width,
+                sprite.texture.?.height,
                 if (sprite.current_frame == toFloat(frame)) .blue else .white,
             );
+            const str = std.fmt.allocPrintZ(std.heap.page_allocator, "{}", .{frame}) catch unreachable;
+            defer std.heap.page_allocator.free(str);
+            rl.drawText(str, x + 10, 100, 20, .white);
         }
 
         rl.drawRectangleLines(
-            toInt(pos.x),
-            toInt(pos.y),
-            toInt(size.width),
-            toInt(size.height),
+            toInt(hitbox.x),
+            toInt(hitbox.y),
+            toInt(hitbox.width),
+            toInt(hitbox.height),
             .red,
+        );
+
+        const hitbox_bottom = hitbox.y + hitbox.height;
+        rl.drawRectangleLines(
+            toInt((hitbox.x + hitbox.width / 2) - (canvas.width / 2)),
+            toInt(hitbox_bottom - canvas.height),
+            toInt(canvas.width),
+            toInt(canvas.height),
+            .blue,
         );
     }
 }
 
+fn toSentinel(args: anytype) [:0]u8 {
+    const str = std.fmt.allocPrintZ(std.heap.page_allocator, "{}", args) catch unreachable;
+    return str;
+}
+
 fn animateRender(reg: *ecs.Registry) void {
-    var view = reg.view(.{ comp.Animate, comp.PlayerTag, comp.Size, comp.Position }, .{});
+    var view = reg.view(.{ comp.Animate, comp.Canvas, comp.Hitbox }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate = view.get(comp.Animate, e);
-        const pos = view.get(comp.Position, e);
-        const size = view.get(comp.Size, e);
+        const canvas = view.get(comp.Canvas, e);
+        const hitbox = view.get(comp.Hitbox, e);
 
         const sprite = animate.get_sprite();
 
+        const hitbox_bottom = hitbox.y + hitbox.height;
+
         const dest_rect = rl.Rectangle{
-            .x = pos.x,
-            .y = pos.y,
-            .width = size.width,
-            .height = size.height,
+            .x = (hitbox.x + (hitbox.width / 2) - (canvas.width / 2)),
+            .y = hitbox_bottom - canvas.height,
+            .width = canvas.width,
+            .height = canvas.height,
         };
+
+        var source = sprite.rectangle;
+        source.width = toFloat(animate.direction) * source.width;
 
         rl.drawTexturePro(
             sprite.texture.?,
-            sprite.rectangle,
+            source,
             dest_rect,
             rl.Vector2{ .x = 0, .y = 0 },
             0,

@@ -5,6 +5,7 @@ const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
+// mkae json file
 pub fn input(reg: *ecs.Registry, dt: f32) !void {
     var view = reg.view(.{ comp.PlayerTag, comp.Velocity, comp.Dodge }, .{});
     var iter = view.entityIterator();
@@ -39,7 +40,7 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
 
 fn overlayInputSystem() void {
     if (rl.isKeyPressed(.o)) {
-        comp.OverlayTag.toggle();
+        comp.Debug.toggle();
     }
 }
 
@@ -115,7 +116,7 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
             jump.coyote_time -= dt;
         }
 
-        if (rl.isKeyDown(.up) or rl.isKeyDown(.w)) {
+        if (rl.isKeyDown(.space) or rl.isKeyDown(.up) or rl.isKeyDown(.w)) {
             jump.buffer_time = JUMP_BUFFER;
         }
 

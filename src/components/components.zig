@@ -9,19 +9,11 @@ pub const Jump = @import("jump.zig").Jump;
 pub const Dodge = @import("dodge.zig").Dodge;
 pub const Sprite = @import("sprite.zig").Sprite;
 pub const Animate = @import("animate.zig").Animate;
-
-pub const OverlayTag = struct {
-    pub var active: bool = false;
-
-    pub fn toggle() void {
-        OverlayTag.active = !OverlayTag.active;
-    }
-};
-
+pub const Hitbox = @import("hitbox.zig").Hitbox;
+pub const Canvas = @import("canvas.zig").Canvas;
 pub const LevelTag = struct { level: *Level };
+pub const Environment = struct { render: bool = false };
+
+pub const Debug = @import("debug.zig").Debug;
 pub const PlayerTag = struct {};
-pub const EnvironmentTag = struct {};
-pub const GravityTag = struct {};
-pub const RenderTag = struct {};
-pub const RectangleTag = struct{};
-pub const NullTag = struct {};
+pub const Gravity = struct {};
