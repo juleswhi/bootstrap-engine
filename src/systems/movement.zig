@@ -13,21 +13,38 @@ pub fn movement(reg: *ecs.Registry, dt: f32) void {
         const vel = view.getConst(comp.Velocity, e);
         var hitbox = view.get(comp.Hitbox, e);
 
+        const crouch = reg.tryGet(comp.Crouch, e);
+
+        if (crouch) |c| {
+            if (c.active) {
+                hitbox.x += vel.x * dt * 0.5;
+                hitbox.y += vel.y * dt;
+                continue;
+            }
+        }
+
         hitbox.x += vel.x * dt;
         hitbox.y += vel.y * dt;
     }
 
-    var player_view = reg.view(.{ comp.Hitbox, comp.Velocity, comp.Animate }, .{});
+    var player_view = reg.view(.{ comp.Hitbox, comp.Velocity, comp.Animate, comp.Dodge, comp.Crouch }, .{});
     var player_iter = player_view.entityIterator();
     while (player_iter.next()) |e| {
         const vel = view.getConst(comp.Velocity, e);
+        const dodge = view.getConst(comp.Dodge, e);
+        const crouch = view.getConst(comp.Crouch, e);
         var ani = view.get(comp.Animate, e);
 
-        if (ani.type == .punch) {}
-        else if (vel.x == 0 and vel.y == 0) {
+        if (ani.type == .punch or ani.type == .dash) {} else if (vel.y == 0 and dodge.is_dodging) {
+            ani.set_animation(.dash);
+        } else if (vel.x == 0 and vel.y == 0 and !crouch.active and ani.type != .land) {
             ani.set_animation(.idle);
-        } else if (vel.x != 0 and vel.y == 0) {
+        } else if (vel.x == 0 and vel.y == 0 and crouch.active) {
+            ani.set_animation(.crouch_idle);
+        } else if (vel.x != 0 and vel.y == 0 and !crouch.active) {
             ani.set_animation(.run);
+        } else if (vel.x != 0 and vel.y == 0 and crouch.active) {
+            ani.set_animation(.crouch_walk);
         } else if (vel.y < 0 or vel.y > 20) {
             ani.set_animation(.jump);
         }

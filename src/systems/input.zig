@@ -5,7 +5,9 @@ const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
 const debug = @import("../log.zig").debug;
 
-// mkae json file
+// TODO: mkae json file
+// TODO: lerp
+// TODO: Variable jump height
 pub fn input(reg: *ecs.Registry, dt: f32) !void {
     var view = reg.view(.{ comp.Hitbox, comp.Velocity, comp.Dodge }, .{});
     var iter = view.entityIterator();
@@ -30,6 +32,18 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
                 dodge.is_dodging = false;
                 dodge.cooldown_timer = dodge.cooldown;
                 vel.x = 0;
+            }
+        }
+
+        if (rl.isKeyDown(.s) or rl.isKeyDown(.down)) {
+            if (reg.has(comp.Crouch, e)) {
+                const crouch = reg.get(comp.Crouch, e);
+                crouch.active = true;
+            }
+        } else {
+            if (reg.has(comp.Crouch, e)) {
+                const crouch = reg.get(comp.Crouch, e);
+                crouch.active = false;
             }
         }
 

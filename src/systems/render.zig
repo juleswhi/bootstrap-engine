@@ -102,7 +102,7 @@ fn animateRender(reg: *ecs.Registry) void {
         const scale_x = (canvas.width / toFloat(sprite.width));
         const scale_y = (canvas.height / toFloat(sprite.height));
 
-        if (comp.Debug.active) {
+        if (comp.Debug.all) {
             debug("X factor: {}", .{toInt(scale_x)});
             debug("Y factor: {}", .{toInt(scale_y)});
         }

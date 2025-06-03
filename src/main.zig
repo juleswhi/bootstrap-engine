@@ -83,14 +83,20 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     reg.add(entity, comp.Jump{});
     reg.add(entity, comp.Velocity.new(0, 0));
     reg.add(entity, comp.Grounded{});
+    reg.add(entity, comp.Crouch{});
 
     reg.add(entity, comp.Dodge{ .speed = 1500 });
 
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
-    try sprite_list.append(comp.Sprite.new("idle", "assets/rain/idle.png", 10, 48, 48, 3, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("idle", "assets/rain/idle.png", 10, 48, 48, 2, true, 0, 15));
     try sprite_list.append(comp.Sprite.new("run", "assets/rain/run.png", 8, 48, 48, 3, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("jump", "assets/rain/jump.png", 6, 48, 48, 2, false, -15, 0));
-    try sprite_list.append(comp.Sprite.new("punch", "assets/rain/punch.png", 8, 64, 64, 2, false, -15, 0));
+    try sprite_list.append(comp.Sprite.new("jump", "assets/rain/jump.png", 6, 48, 48, 2, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("punch", "assets/rain/punch.png", 8, 64, 64, 3, false, -15, 0));
+    try sprite_list.append(comp.Sprite.new("roll", "assets/rain/roll.png", 7, 48, 48, 2, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("dash", "assets/rain/dash.png", 9, 48, 48, 4, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("land", "assets/rain/land.png", 9, 48, 48, 3, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("crouch_idle", "assets/rain/crouch-idle.png", 10, 48, 48, 3, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("crouch_walk", "assets/rain/crouch-walk.png", 10, 48, 48, 3, true, 0, 15));
 
     reg.add(entity, comp.Animate{ .sprites = try sprite_list.toOwnedSlice() });
 

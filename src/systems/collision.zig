@@ -16,10 +16,12 @@ pub fn collision(reg: *ecs.Registry) void {
 
     while (collider_iter.next()) |collider_entity| {
         var collider_grounded = collider_view.get(comp.Grounded, collider_entity);
+        const old_grounded = collider_grounded.value;
         collider_grounded.value = false;
 
         var collider_hitbox = collider_view.get(comp.Hitbox, collider_entity);
         var collider_vel = collider_view.get(comp.Velocity, collider_entity);
+        const old_vel_y = collider_vel.y;
 
         if (comp.Debug.all) {
             debug("Hitbox: {}", .{collider_hitbox.toIntRect()});
@@ -73,8 +75,16 @@ pub fn collision(reg: *ecs.Registry) void {
                 collider_hitbox.y -= vertical_penetration;
                 collider_vel.y = 0;
                 collider_grounded.value = true;
+                if (!old_grounded and (old_vel_y > 20 and collider_vel.y == 0)) {
+                    const ani = reg.get(comp.Animate, collider_entity);
+                    ani.set_animation(.land);
+                }
                 break;
             }
         }
     }
+}
+
+fn toInt(x: anytype) i32 {
+    return @intFromFloat(x);
 }

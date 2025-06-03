@@ -7,6 +7,11 @@ pub const AnimateType = enum {
     run,
     jump,
     punch,
+    roll,
+    dash,
+    land,
+    crouch_idle,
+    crouch_walk,
 };
 
 pub const Animate = struct {
@@ -21,6 +26,11 @@ pub const Animate = struct {
             .run => "run",
             .jump => "jump",
             .punch => "punch",
+            .roll => "roll",
+            .dash => "dash",
+            .land => "land",
+            .crouch_idle => "crouch_idle",
+            .crouch_walk => "crouch_walk",
         };
 
         for (self.sprites) |*s| {
@@ -33,19 +43,24 @@ pub const Animate = struct {
     }
 
     pub fn type_to_str(t: AnimateType) []const u8 {
-        return switch(t) {
+        return switch (t) {
             .idle => "idle",
             .run => "run",
             .jump => "jump",
             .punch => "punch",
+            .roll => "roll",
+            .dash => "dash",
+            .land => "land",
+            .crouch_idle => "crouch_idle",
+            .crouch_walk => "crouch_walk",
         };
     }
 
     pub fn set_animation(self: *Animate, t: AnimateType) void {
         self.previous_type = self.type;
         self.type = t;
-        for(self.sprites) |*s| {
-            if(!std.mem.eql(u8, type_to_str(self.type), s.name)) {
+        for (self.sprites) |*s| {
+            if (!std.mem.eql(u8, type_to_str(self.type), s.name)) {
                 s.current_frame = 0;
             }
         }
