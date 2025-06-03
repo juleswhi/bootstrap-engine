@@ -7,11 +7,13 @@ const debug = @import("../log.zig").debug;
 
 // mkae json file
 pub fn input(reg: *ecs.Registry, dt: f32) !void {
-    var view = reg.view(.{ comp.PlayerTag, comp.Velocity, comp.Dodge }, .{});
+    var view = reg.view(.{ comp.Hitbox, comp.Velocity, comp.Dodge }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const vel = view.get(comp.Velocity, e);
         var dodge = view.get(comp.Dodge, e);
+        var hitbox = view.get(comp.Hitbox, e);
+        var gravity = view.get(comp.Gravity, e);
         const prev_vel = vel.x;
         vel.x = 0;
 
@@ -29,6 +31,14 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
                 dodge.cooldown_timer = dodge.cooldown;
                 vel.x = 0;
             }
+        }
+
+        if (rl.isMouseButtonDown(.left)) {
+            gravity.enabled = false;
+            hitbox.x = toFloat(rl.getMouseX());
+            hitbox.y = toFloat(rl.getMouseY());
+        } else {
+            gravity.enabled = true;
         }
     }
 
@@ -92,7 +102,7 @@ fn dodgeInputSystem(reg: *ecs.Registry) void {
 }
 
 fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
-    const JUMP_BUFFER = 0.1;
+    const JUMP_BUFFER = 0.05;
     const COYOTE_TIME = 0.1;
 
     var view = reg.view(.{
@@ -122,10 +132,15 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
 
         if (jump.buffer_time > 0 and jump.can_jump) {
             vel.y = -650;
+
             jump.buffer_time = 0;
             jump.coyote_time = 0;
         } else {
             jump.buffer_time = @max(0, jump.buffer_time - dt);
         }
     }
+}
+
+fn toFloat(x: anytype) f32 {
+    return @floatFromInt(x);
 }

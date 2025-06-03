@@ -19,6 +19,7 @@ pub fn build(b: *std.Build) void {
     const raylib_dep = b.dependency("raylib_zig", .{
         .target = target,
         .optimize = optimize,
+        .opengl_version = .gl_3_3,
     });
 
     const ecs_dep = b.dependency("ecs", .{

@@ -16,4 +16,4 @@ pub const Environment = struct { render: bool = false };
 
 pub const Debug = @import("debug.zig").Debug;
 pub const PlayerTag = struct {};
-pub const Gravity = struct {};
+pub const Gravity = struct { enabled: bool = true };

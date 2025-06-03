@@ -8,7 +8,7 @@ const debug = @import("../log.zig").debug;
 
 // TODO: Refactor
 pub fn collision(reg: *ecs.Registry) void {
-    const COLLIDER_TOLERANCE: f32 = 0.2;
+    const COLLIDER_TOLERANCE: f32 = 0.1;
     var ground_view = reg.view(.{ comp.Environment, comp.Hitbox, comp.Colour }, .{});
 
     var collider_view = reg.view(.{ comp.Hitbox, comp.Velocity, comp.Grounded }, .{});
@@ -21,7 +21,7 @@ pub fn collision(reg: *ecs.Registry) void {
         var collider_hitbox = collider_view.get(comp.Hitbox, collider_entity);
         var collider_vel = collider_view.get(comp.Velocity, collider_entity);
 
-        if (comp.Debug.active) {
+        if (comp.Debug.all) {
             debug("Hitbox: {}", .{collider_hitbox.toIntRect()});
             debug("Velocity: {}", .{collider_vel.toInt()});
         }

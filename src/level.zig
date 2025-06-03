@@ -54,7 +54,7 @@ pub const Level = struct {
             const e = reg.create();
             reg.add(e, rect.colour);
             reg.add(e, rect.hitbox);
-            reg.add(e, comp.Environment{.render = rect.render});
+            reg.add(e, comp.Environment{ .render = rect.render });
         }
     }
 };

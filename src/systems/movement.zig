@@ -23,14 +23,23 @@ pub fn movement(reg: *ecs.Registry, dt: f32) void {
         const vel = view.getConst(comp.Velocity, e);
         var ani = view.get(comp.Animate, e);
 
-        if (vel.x == 0) {
-            ani.type = .idle;
-        } else if (vel.x < 0) {
-            ani.type = .run;
-            ani.direction = -1;
-        } else if (vel.x > 0) {
-            ani.type = .run;
+        if (ani.type == .punch) {}
+        else if (vel.x == 0 and vel.y == 0) {
+            ani.set_animation(.idle);
+        } else if (vel.x != 0 and vel.y == 0) {
+            ani.set_animation(.run);
+        } else if (vel.y < 0 or vel.y > 20) {
+            ani.set_animation(.jump);
+        }
+
+        if (vel.y < 20 and vel.y > -20 and rl.isKeyPressed(.f)) {
+            ani.set_animation(.punch);
+        }
+
+        if (vel.x > 0) {
             ani.direction = 1;
+        } else if (vel.x < 0) {
+            ani.direction = -1;
         }
     }
 }

@@ -10,8 +10,20 @@ const systems = @import("systems.zig");
 const tests = @import("tests.zig");
 const loadTextures = @import("systems/animate.zig").loadTextures;
 const unloadTextures = @import("systems/animate.zig").unloadTextures;
+const Debug = @import("components/debug.zig").Debug;
 
 pub fn main() !void {
+    var args = std.process.args();
+    while (args.next()) |arg| {
+        debug("Arg: {s}", .{arg});
+        if (std.mem.eql(u8, "debug", arg)) {
+            Debug.active = true;
+        }
+        if (std.mem.eql(u8, "all", arg)) {
+            Debug.all = true;
+        }
+    }
+
     var reg = ecs.Registry.init(std.heap.page_allocator);
 
     const width = 1500;
@@ -65,8 +77,8 @@ pub fn main() !void {
 fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     const entity = reg.create();
 
-    reg.add(entity, comp.Hitbox.new(width / 2, 10, 42, 76));
-    reg.add(entity, comp.Canvas{ .width = 240, .height = 160 });
+    reg.add(entity, comp.Hitbox.new(width / 2, 10, 48, 48));
+    reg.add(entity, comp.Canvas{ .width = 96, .height = 96 });
 
     reg.add(entity, comp.Jump{});
     reg.add(entity, comp.Velocity.new(0, 0));
@@ -75,19 +87,15 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     reg.add(entity, comp.Dodge{ .speed = 1500 });
 
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
-    try sprite_list.append(comp.Sprite.new("idle", "assets/knight/idle.png", 10, 120, 80, 0));
-    try sprite_list.append(comp.Sprite.new("run", "assets/knight/run.png", 10, 120, 80, 0));
+    try sprite_list.append(comp.Sprite.new("idle", "assets/rain/idle.png", 10, 48, 48, 3, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("run", "assets/rain/run.png", 8, 48, 48, 3, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("jump", "assets/rain/jump.png", 6, 48, 48, 2, false, -15, 0));
+    try sprite_list.append(comp.Sprite.new("punch", "assets/rain/punch.png", 8, 64, 64, 2, false, -15, 0));
 
     reg.add(entity, comp.Animate{ .sprites = try sprite_list.toOwnedSlice() });
 
     reg.add(entity, comp.PlayerTag{});
     reg.add(entity, comp.Gravity{});
-}
-
-fn createOverlay(reg: *ecs.Registry) void {
-    const e = reg.create();
-    reg.add(e, comp.Debug{ .active = false });
-    reg.add(e, comp.NullTag{});
 }
 
 test {

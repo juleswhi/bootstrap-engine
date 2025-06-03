@@ -54,7 +54,7 @@ fn debugRender(reg: *ecs.Registry) void {
             rl.drawRectangleLines(
                 x,
                 0,
-                sprite.texture.?.width,
+                toInt(toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)),
                 sprite.texture.?.height,
                 if (sprite.current_frame == toFloat(frame)) .blue else .white,
             );
@@ -99,11 +99,19 @@ fn animateRender(reg: *ecs.Registry) void {
 
         const hitbox_bottom = hitbox.y + hitbox.height;
 
+        const scale_x = (canvas.width / toFloat(sprite.width));
+        const scale_y = (canvas.height / toFloat(sprite.height));
+
+        if (comp.Debug.active) {
+            debug("X factor: {}", .{toInt(scale_x)});
+            debug("Y factor: {}", .{toInt(scale_y)});
+        }
+
         const dest_rect = rl.Rectangle{
-            .x = (hitbox.x + (hitbox.width / 2) - (canvas.width / 2)),
-            .y = hitbox_bottom - canvas.height,
-            .width = canvas.width,
-            .height = canvas.height,
+            .x = (hitbox.x + (hitbox.width / 2) - (canvas.width / 2)) + (sprite.offset_x),
+            .y = (hitbox_bottom - canvas.height) + (sprite.offset_y),
+            .width = canvas.width * (1 / scale_x) * 2,
+            .height = canvas.height * (1 / scale_y) * 2,
         };
 
         var source = sprite.rectangle;
@@ -123,6 +131,7 @@ fn animateRender(reg: *ecs.Registry) void {
 fn toFloat(x: anytype) f32 {
     return @floatFromInt(x);
 }
+
 fn toInt(f: f32) i32 {
     return @intFromFloat(f);
 }

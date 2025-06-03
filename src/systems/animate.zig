@@ -11,20 +11,29 @@ pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate_comp = view.get(comp.Animate, e);
+        var sprite = animate_comp.get_sprite();
 
-        if (!(frame_counter.* >= (60 / animate_comp.frame_speed))) continue;
+        if (!(frame_counter.* >= (60 / sprite.frame_speed))) continue;
         frame_counter.* = 0;
 
-        const sprite = animate_comp.get_sprite();
         sprite.current_frame += 1;
+
+        if (comp.Debug.active) {
+            debug("Current Frame: {}, Num Frames: {}", .{ toInt(sprite.current_frame), sprite.num_frames - 1 });
+        }
+        if (sprite.current_frame > toFloat(sprite.num_frames - 2)) {
+            if (!sprite.looping) {
+                animate_comp.set_animation(animate_comp.previous_type);
+                continue;
+            }
+        }
 
         if (sprite.current_frame > toFloat(sprite.num_frames - 1)) {
             sprite.current_frame = 0;
         }
 
         sprite.rectangle.x =
-            (sprite.current_frame * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)) +
-                (sprite.rectangle.width + toFloat(sprite.padding)));
+            (sprite.current_frame * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)) + (sprite.rectangle.width));
     }
 }
 

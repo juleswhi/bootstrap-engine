@@ -14,9 +14,11 @@ pub fn gravity(reg: *ecs.Registry, dt: f32) void {
 
     while (iter.next()) |e| {
         const grounded = view.getConst(comp.Grounded, e);
+        const grav = view.getConst(comp.Gravity, e);
         if (grounded.value) continue;
+        if(!grav.enabled) continue;
 
-        if (comp.Debug.active) {
+        if (comp.Debug.all) {
             debug("Gravity Active, Grounded: {}", .{grounded.value});
         }
 
