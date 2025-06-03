@@ -2,8 +2,10 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-
     const optimize = b.standardOptimizeOption(.{});
+
+    const raylib_options = b.addOptions();
+    raylib_options.addOption([]const u8, "linux_display_backend", "x11");
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -36,6 +38,8 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("ecs", ecs);
     exe.root_module.addImport("raygui", raygui);
+
+    exe.root_module.addOptions("raylib_options", raylib_options);
 
     b.installArtifact(exe);
 
