@@ -26,5 +26,5 @@ jobs:
           libasound2-dev \
           libgl1-mesa-dev \
           libwayland-dev \
-          xkbcommon-dev \
+          libxkbcommon-dev \
       - run: zig build
