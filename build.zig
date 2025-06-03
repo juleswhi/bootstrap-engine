@@ -44,7 +44,7 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("raygui", raygui);
     exe.root_module.addOptions("raylib_options", raylib_options);
 
-    if (target.getOsTag() == .windows) {
+    if (target.query.os_tag == .windows) {
         exe.addWin32ResourceFile(.{ .file = .{ .path = "resources.rc" } });
     }
 
