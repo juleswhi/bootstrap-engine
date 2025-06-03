@@ -1,16 +1,18 @@
 const ecs = @import("ecs");
 const std = @import("std");
 const rl = @import("raylib");
+const sd = @import("stardust");
 const comp = @import("components/components.zig");
 const Level = @import("level.zig").Level;
 const Rect = @import("level.zig").Rect;
 const serialiser = @import("serializer.zig");
 const systems = @import("systems.zig");
 const tests = @import("tests.zig");
-const sd = @import("stardust");
 const loadTextures = @import("systems/animate.zig").loadTextures;
 const unloadTextures = @import("systems/animate.zig").unloadTextures;
 const Debug = @import("components/debug.zig").Debug;
+
+pub const FPS: i32 = 240;
 
 pub fn main() !void {
     var args = std.process.args();
@@ -43,7 +45,7 @@ pub fn main() !void {
     rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
 
-    rl.setTargetFPS(240);
+    rl.setTargetFPS(FPS);
 
     try loadTextures(&reg);
 

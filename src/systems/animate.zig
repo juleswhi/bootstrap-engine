@@ -5,6 +5,7 @@ const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
 const sd = @import("stardust");
+const FPS = @import("../main.zig").FPS;
 
 pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
     var view = reg.view(.{ comp.PlayerTag, comp.Animate }, .{});
@@ -13,7 +14,7 @@ pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
         const animate_comp = view.get(comp.Animate, e);
         var sprite = animate_comp.get_sprite();
 
-        if (!(frame_counter.* >= (60 / sprite.frame_speed))) continue;
+        if (!(frame_counter.* >= toInt(((toFloat(FPS) / 5) / toFloat(sprite.frame_speed))))) continue;
         frame_counter.* = 0;
 
         sprite.current_frame += 1;
