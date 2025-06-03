@@ -4,8 +4,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // Get Linux display backend option (default to x11)
+    const linux_display_backend = b.option([]const u8, "linux_display_backend", "Linux display backend (x11 or wayland)") orelse "x11";
+
+    // Create options for raylib
     const raylib_options = b.addOptions();
-    raylib_options.addOption([]const u8, "linux_display_backend", "x11");
+    raylib_options.addOption([]const u8, "linux_display_backend", linux_display_backend);
 
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
@@ -21,6 +25,7 @@ pub fn build(b: *std.Build) void {
     const raylib_dep = b.dependency("raylib_zig", .{
         .target = target,
         .optimize = optimize,
+        .linux_display_backend = linux_display_backend,
     });
 
     const ecs_dep = b.dependency("ecs", .{
@@ -37,8 +42,11 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("ecs", ecs);
     exe.root_module.addImport("raygui", raygui);
-
     exe.root_module.addOptions("raylib_options", raylib_options);
+
+    if (target.getOsTag() == .windows) {
+        exe.addWin32ResourceFile(.{ .file = .{ .path = "resources.rc" } });
+    }
 
     b.installArtifact(exe);
 

@@ -1,0 +1,66 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            zig-target: x86_64-linux
+            artifact-name: bootstrap-linux
+          - os: windows-latest
+            zig-target: x86_64-windows
+            artifact-name: bootstrap-windows.exe
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mlugg/setup-zig@v2
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+          libx11-dev \
+          libxcursor-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxi-dev \
+          libasound2-dev \
+          libgl1-mesa-dev \
+          libwayland-dev \
+          libxkbcommon-dev \
+
+      - name: Build executable
+        run: |
+          zig build -Doptimize=ReleaseSafe -Dtarget=${{ matrix.zig-target }} -Dlinux_display_backend=x11
+          mkdir release
+          cp zig-out/bin/bootstrap* release/${{ matrix.artifact-name }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: release/${{ matrix.artifact-name }}
+          retention-days: 1
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/bootstrap-*
