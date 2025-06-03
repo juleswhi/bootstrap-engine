@@ -13,12 +13,18 @@ pub fn build(b: *std.Build) void {
     const exe = b.addExecutable(.{
         .name = "bootstrap",
         .root_module = exe_mod,
+        .use_lld = false,
     });
 
     const raylib_options = b.addOptions();
     raylib_options.addOption([]const u8, "linux_display_backend", "x11");
 
     const raylib_dep = b.dependency("raylib_zig", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const stardust_dep = b.dependency("stardust", .{
         .target = target,
         .optimize = optimize,
     });
@@ -31,9 +37,11 @@ pub fn build(b: *std.Build) void {
     const raylib = raylib_dep.module("raylib");
     const raygui = raylib_dep.module("raygui");
     const raylib_artifact = raylib_dep.artifact("raylib");
+    const stardust = stardust_dep.module("stardust");
     const ecs = ecs_dep.module("zig-ecs");
 
     exe.linkLibrary(raylib_artifact);
+    exe.root_module.addImport("stardust", stardust);
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("ecs", ecs);
     exe.root_module.addImport("raygui", raygui);
@@ -44,13 +52,6 @@ pub fn build(b: *std.Build) void {
     }
 
     b.installArtifact(exe);
-
-    const exe_check = b.addExecutable(.{
-        .name = "foo",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
 
     const run_cmd = b.addRunArtifact(exe);
 
@@ -69,9 +70,6 @@ pub fn build(b: *std.Build) void {
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     run_exe_unit_tests.addFileInput(b.path("src/tests.zig"));
-
-    const check = b.step("check", "Check if foo compiles");
-    check.dependOn(&exe_check.step);
 
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_exe_unit_tests.step);

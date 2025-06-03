@@ -4,7 +4,7 @@ const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
-const debug = @import("../log.zig").debug;
+const sd = @import("stardust");
 
 pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
     var view = reg.view(.{ comp.PlayerTag, comp.Animate }, .{});
@@ -18,8 +18,8 @@ pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
 
         sprite.current_frame += 1;
 
-        if (comp.Debug.active) {
-            debug("Current Frame: {}, Num Frames: {}", .{ toInt(sprite.current_frame), sprite.num_frames - 1 });
+        if (comp.Debug.all) {
+            sd.debug("Current Frame: {}, Num Frames: {}", .{ toInt(sprite.current_frame), sprite.num_frames - 1 });
         }
         if (sprite.current_frame > toFloat(sprite.num_frames - 2)) {
             if (!sprite.looping) {
@@ -49,6 +49,7 @@ pub fn loadTextures(reg: *ecs.Registry) !void {
 
         for (animate_comp.sprites) |*s| {
             s.texture = try rl.loadTexture(s.texture_path);
+            sd.info("Unloaded texture for: {s}", .{s.name});
 
             s.rectangle = rl.Rectangle{
                 .x = 0,
@@ -68,7 +69,7 @@ pub fn unloadTextures(reg: *ecs.Registry) !void {
 
         for (animate_comp.sprites) |*s| {
             rl.unloadTexture(s.texture.?);
-            debug("Unloaded texture for: {s}", .{s.name});
+            sd.info("Unloaded texture for: {s}", .{s.name});
         }
     }
 }

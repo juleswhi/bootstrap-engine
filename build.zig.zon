@@ -1,9 +1,9 @@
 .{
-    .name = .raylib_zig_platformer,
+    .name = .bootstrap,
 
     .version = "0.0.1",
 
-    .fingerprint = 0x40cfa134f3cc68e4,
+    .fingerprint = 0x51a34670fd4b2fe3,
 
     .minimum_zig_version = "0.14.0",
 
@@ -15,6 +15,10 @@
         .ecs = .{
             .url = "git+https://github.com/prime31/zig-ecs#fdad10c3274582842ed4c06b580a414c4c826f4c",
             .hash = "entt-1.0.0-qJPtbESoAgAGf--3nrQclyKL7WHK8JxZTGs8u2YNdOHm",
+        },
+        .stardust = .{
+            .url = "git+https://github.com/juleswhi/stardust.git?ref=main#d23fa58a6524c5a61cf698e6437f80b8a9e71725",
+            .hash = "stardust-0.1.0-0JKFsbVXAADea6wtXQlgJjLwsvHFvGDstBH7RCoQhnw-",
         },
     },
     .paths = .{

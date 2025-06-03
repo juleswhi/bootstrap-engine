@@ -2,8 +2,8 @@ const std = @import("std");
 const json = std.json;
 const Level = @import("level.zig").Level;
 const LevelRectangle = @import("level.zig").LevelRectangle;
-const log = @import("log.zig");
 const Hitbox = @import("components/hitbox.zig").Hitbox;
+const sd = @import("stardust");
 
 pub fn readJsonFile(allocator: std.mem.Allocator, file_path: []const u8) ![]const u8 {
     const file = try std.fs.cwd().openFile(file_path, .{});
@@ -62,7 +62,7 @@ pub fn deserialiseLevel(str: []const u8) !Level {
         };
     }
 
-    log.debug("New Level: {s}", .{name});
+    sd.debug("New Level: {s}", .{name});
 
     return Level{
         .name = name,

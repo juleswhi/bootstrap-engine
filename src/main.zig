@@ -4,10 +4,10 @@ const rl = @import("raylib");
 const comp = @import("components/components.zig");
 const Level = @import("level.zig").Level;
 const Rect = @import("level.zig").Rect;
-const debug = @import("log.zig").debug;
 const serialiser = @import("serializer.zig");
 const systems = @import("systems.zig");
 const tests = @import("tests.zig");
+const sd = @import("stardust");
 const loadTextures = @import("systems/animate.zig").loadTextures;
 const unloadTextures = @import("systems/animate.zig").unloadTextures;
 const Debug = @import("components/debug.zig").Debug;
@@ -15,7 +15,7 @@ const Debug = @import("components/debug.zig").Debug;
 pub fn main() !void {
     var args = std.process.args();
     while (args.next()) |arg| {
-        debug("Arg: {s}", .{arg});
+        sd.debug("Arg: {s}", .{arg});
         if (std.mem.eql(u8, "debug", arg)) {
             Debug.active = true;
         }
@@ -25,6 +25,7 @@ pub fn main() !void {
     }
 
     var reg = ecs.Registry.init(std.heap.page_allocator);
+    defer reg.deinit();
 
     const width = 1500;
     const height = 800;
@@ -66,9 +67,10 @@ pub fn main() !void {
         defer rl.endDrawing();
 
         rl.drawFPS(width - 100, 10);
-        rl.clearBackground(.black);
 
         systems.Render(&reg);
+
+        rl.clearBackground(.black);
     }
 
     try unloadTextures(&reg);
@@ -103,6 +105,7 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     reg.add(entity, comp.PlayerTag{});
     reg.add(entity, comp.Gravity{});
 }
+
 
 test {
     _ = tests;

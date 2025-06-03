@@ -3,7 +3,7 @@ const LevelRectangle = @import("level.zig").LevelRectangle;
 const Hitbox = @import("components/hitbox.zig").Hitbox;
 const serialiser = @import("serializer.zig");
 const std = @import("std");
-const debug = @import("log.zig").debug;
+const sd = @import("stardust");
 
 test "Serialise Level One" {
     const screen_width = 1500;
@@ -24,7 +24,7 @@ test "Serialise Level One" {
 
     const json_str = try serialiser.serialiseLevel(&level);
     defer std.heap.page_allocator.free(json_str);
-    debug("{s}\n", .{json_str});
+    sd.debug("{s}\n", .{json_str});
     try serialiser.writeJsonFile("levels/level_one.json", json_str);
 
     const decoded_level = try serialiser.deserialiseLevel(json_str);
@@ -52,7 +52,7 @@ test "Serialise Level Two" {
 
     const json_str = try serialiser.serialiseLevel(&level);
     defer std.heap.page_allocator.free(json_str);
-    debug("{s}\n", .{json_str});
+    sd.debug("{s}\n", .{json_str});
     try serialiser.writeJsonFile("levels/level_two.json", json_str);
 
     const decoded_level = try serialiser.deserialiseLevel(json_str);

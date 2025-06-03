@@ -4,7 +4,7 @@ const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
-const debug = @import("../log.zig").debug;
+const sd = @import("stardust");
 
 // TODO: Refactor
 pub fn collision(reg: *ecs.Registry) void {
@@ -24,8 +24,8 @@ pub fn collision(reg: *ecs.Registry) void {
         const old_vel_y = collider_vel.y;
 
         if (comp.Debug.all) {
-            debug("Hitbox: {}", .{collider_hitbox.toIntRect()});
-            debug("Velocity: {}", .{collider_vel.toInt()});
+            sd.debug("Hitbox: {}", .{collider_hitbox.toIntRect()});
+            sd.debug("Velocity: {}", .{collider_vel.toInt()});
         }
 
         var horizontal_ground_iter = ground_view.entityIterator();

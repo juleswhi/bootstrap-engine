@@ -4,7 +4,7 @@ const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
-const debug = @import("../log.zig").debug;
+const sd = @import("stardust");
 
 pub fn render(reg: *ecs.Registry) void {
     rl.beginBlendMode(rl.BlendMode.alpha);
@@ -103,8 +103,8 @@ fn animateRender(reg: *ecs.Registry) void {
         const scale_y = (canvas.height / toFloat(sprite.height));
 
         if (comp.Debug.all) {
-            debug("X factor: {}", .{toInt(scale_x)});
-            debug("Y factor: {}", .{toInt(scale_y)});
+            sd.debug("X factor: {}", .{toInt(scale_x)});
+            sd.debug("Y factor: {}", .{toInt(scale_y)});
         }
 
         const dest_rect = rl.Rectangle{

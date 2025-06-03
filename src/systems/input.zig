@@ -3,7 +3,7 @@ const ecs = @import("ecs");
 const comp = @import("../components/components.zig");
 const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
-const debug = @import("../log.zig").debug;
+const sd = @import("stardust");
 
 // TODO: mkae json file
 // TODO: lerp
@@ -73,7 +73,7 @@ fn levelInputSystem(reg: *ecs.Registry) !void {
         const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
         defer std.heap.page_allocator.free(json);
 
-        debug("{s}", .{json});
+        sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
         defer std.heap.page_allocator.free(level.rects);
@@ -84,7 +84,7 @@ fn levelInputSystem(reg: *ecs.Registry) !void {
         const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_two.json");
         defer std.heap.page_allocator.free(json);
 
-        debug("{s}", .{json});
+        sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
         defer std.heap.page_allocator.free(level.rects);
@@ -132,26 +132,42 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
         var vel = view.get(comp.Velocity, e);
         var jump = view.get(comp.Jump, e);
 
-        jump.can_jump = grounded.value or jump.coyote_time > 0;
-
         if (grounded.value) {
             jump.coyote_time = COYOTE_TIME;
+            jump.is_jumping = false;
         } else {
             jump.coyote_time -= dt;
         }
+
+        jump.can_jump = grounded.value or jump.coyote_time > 0;
 
         if (rl.isKeyDown(.space) or rl.isKeyDown(.up) or rl.isKeyDown(.w)) {
             jump.buffer_time = JUMP_BUFFER;
         }
 
         if (jump.buffer_time > 0 and jump.can_jump) {
-            vel.y = -650;
-
+            vel.y = -jump.initial_velocity;
             jump.buffer_time = 0;
             jump.coyote_time = 0;
+            jump.is_jumping = true;
         } else {
             jump.buffer_time = @max(0, jump.buffer_time - dt);
         }
+
+        if(jump.is_jumping and vel.y < 0) {
+            const jumpKeyReleased =
+                !rl.isKeyDown(.space) and
+                !rl.isKeyDown(.up) and
+                !rl.isKeyDown(.w);
+            if(jumpKeyReleased) {
+                vel.y *= 0.6;
+                jump.is_jumping = false;
+            }
+        }
+        else if(jump.is_jumping and vel.y >= 0) {
+            jump.is_jumping = false;
+        }
+
     }
 }
 

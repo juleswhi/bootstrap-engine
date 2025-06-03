@@ -4,7 +4,6 @@ const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const serialiser = @import("../serializer.zig");
-const debug = @import("../log.zig").debug;
 
 pub fn dodge(reg: *ecs.Registry, dt: f32) void {
     var view = reg.view(.{ comp.Velocity, comp.Dodge }, .{});

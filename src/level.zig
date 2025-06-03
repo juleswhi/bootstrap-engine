@@ -1,7 +1,6 @@
 const std = @import("std");
 const ecs = @import("ecs");
 const comp = @import("components/components.zig");
-const log = @import("log.zig");
 const json = std.json;
 
 pub const LevelRectangle = struct {
