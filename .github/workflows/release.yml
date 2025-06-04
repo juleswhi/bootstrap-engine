@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Build on ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+
+      # Linux dependencies
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+          libx11-dev \
+          libxcursor-dev \
+          libxinerama-dev \
+          libxrandr-dev \
+          libxi-dev \
+          libasound2-dev \
+          libgl1-mesa-dev \
+          libwayland-dev \
+          libxkbcommon-dev
+
+      # Build step
+      - name: Build project
+        run: zig build -Drelease-safe
+
+      # Package Linux binary
+      - name: Package Linux release
+        if: runner.os == 'Linux'
+        run: |
+          mkdir release
+          cp zig-out/bin/<your-binary-name> release/
+          tar czvf linux-release.tar.gz -C release .
+
+      # Package Windows binary
+      - name: Package Windows release
+        if: runner.os == 'Windows'
+        run: |
+          mkdir release
+          cp zig-out/bin/<your-binary-name>.exe release/
+          Compress-Archive -Path release -DestinationPath windows-release.zip
+
+      # Upload artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-release
+          path: |
+            ${{ runner.os }}-release.*
+            # For Linux: linux-release.tar.gz
+            # For Windows: windows-release.zip
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.sha }}
+          tag_name: ${{ github.sha }}
+          body: Automatic release for Windows and Linux
+          files: |
+            artifacts/ubuntu-latest-release/linux-release.tar.gz
+            artifacts/windows-latest-release/windows-release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
