@@ -3,8 +3,7 @@ const ecs = @import("ecs");
 const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
-const serialiser = @import("../serializer.zig");
-const sd = @import("stardust");
+const sd = @import("../log.zig");
 
 pub fn render(reg: *ecs.Registry) void {
     rl.beginBlendMode(rl.BlendMode.alpha);

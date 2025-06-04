@@ -3,7 +3,6 @@ const ecs = @import("ecs");
 const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
-const serialiser = @import("../serializer.zig");
 const sd = @import("stardust");
 
 pub fn movement(reg: *ecs.Registry, dt: f32) void {

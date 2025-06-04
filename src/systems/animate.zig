@@ -3,8 +3,7 @@ const ecs = @import("ecs");
 const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
-const serialiser = @import("../serializer.zig");
-const sd = @import("stardust");
+const sd = @import("../log.zig");
 const FPS = @import("../main.zig").FPS;
 
 pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
@@ -24,7 +23,7 @@ pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
         }
         if (sprite.current_frame > toFloat(sprite.num_frames - 2)) {
             if (!sprite.looping) {
-                if(animate_comp.type == .land) {
+                if (animate_comp.type == .land) {
                     animate_comp.set_animation(.idle);
                 } else {
                     animate_comp.set_animation(animate_comp.previous_type);
@@ -49,8 +48,11 @@ pub fn loadTextures(reg: *ecs.Registry) !void {
         const animate_comp = reg.get(comp.Animate, e);
 
         for (animate_comp.sprites) |*s| {
-            s.texture = try rl.loadTexture(s.texture_path);
-            sd.info("Unloaded texture for: {s}", .{s.name});
+            const image = try rl.loadImageFromMemory(".png", s.image_data);
+            defer rl.unloadImage(image);
+
+            s.texture = try rl.loadTextureFromImage(image);
+            sd.info("Loaded texture for: {s}", .{s.name});
 
             s.rectangle = rl.Rectangle{
                 .x = 0,

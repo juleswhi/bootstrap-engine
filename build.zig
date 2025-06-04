@@ -1,5 +1,11 @@
 const std = @import("std");
 
+fn ensureDirExists(b: *std.Build, dir: std.Build.LazyPath) void {
+    const mkdir_step = b.addSystemCommand(&.{ "cmd", "/c", "mkdir" });
+    mkdir_step.addDirectoryArg(dir);
+    mkdir_step.step.dependOn(b.getInstallStep());
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -13,18 +19,17 @@ pub fn build(b: *std.Build) void {
     const exe = b.addExecutable(.{
         .name = "bootstrap",
         .root_module = exe_mod,
-        .use_lld = false,
     });
+
+    if (target.result.os.tag == .windows) {
+        exe.subsystem = .Windows;
+        exe.win32_manifest = b.path("manifest.manifest");
+    }
 
     const raylib_options = b.addOptions();
     raylib_options.addOption([]const u8, "linux_display_backend", "x11");
 
     const raylib_dep = b.dependency("raylib_zig", .{
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const stardust_dep = b.dependency("stardust", .{
         .target = target,
         .optimize = optimize,
     });
@@ -37,21 +42,25 @@ pub fn build(b: *std.Build) void {
     const raylib = raylib_dep.module("raylib");
     const raygui = raylib_dep.module("raygui");
     const raylib_artifact = raylib_dep.artifact("raylib");
-    const stardust = stardust_dep.module("stardust");
     const ecs = ecs_dep.module("zig-ecs");
 
     exe.linkLibrary(raylib_artifact);
-    exe.root_module.addImport("stardust", stardust);
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("ecs", ecs);
     exe.root_module.addImport("raygui", raygui);
     exe.root_module.addOptions("raylib_options", raylib_options);
 
-    if (target.query.os_tag == .windows) {
-        exe.addWin32ResourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "resources.rc" } } });
-    }
+    if (target.result.os.tag == .windows) {
+        const install_dir = b.getInstallPath(.bin, "");
+        ensureDirExists(b, .{ .src_path = .{ .owner = b, .sub_path = install_dir } });
 
-    b.installArtifact(exe);
+        const install_step = b.addInstallArtifact(exe, .{});
+        install_step.dest_dir = .{ .custom = "" };
+
+        b.getInstallStep().dependOn(&install_step.step);
+    } else {
+        b.installArtifact(exe);
+    }
 
     const run_cmd = b.addRunArtifact(exe);
 

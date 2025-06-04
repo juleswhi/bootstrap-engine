@@ -3,9 +3,7 @@ const ecs = @import("ecs");
 const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
-const serialiser = @import("../serializer.zig");
-const sd = @import("stardust");
-
+const sd = @import("../log.zig");
 
 const GRAVITY_ACCEL = 2000;
 
@@ -17,7 +15,7 @@ pub fn gravity(reg: *ecs.Registry, dt: f32) void {
         const grounded = view.getConst(comp.Grounded, e);
         const grav = view.getConst(comp.Gravity, e);
         if (grounded.value) continue;
-        if(!grav.enabled) continue;
+        if (!grav.enabled) continue;
 
         if (comp.Debug.all) {
             sd.debug("Gravity Active, Grounded: {}", .{grounded.value});

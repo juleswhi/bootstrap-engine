@@ -3,7 +3,7 @@ const ecs = @import("ecs");
 const comp = @import("../components/components.zig");
 const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
-const sd = @import("stardust");
+const sd = @import("../log.zig");
 
 // TODO: mkae json file
 // TODO: lerp
@@ -70,9 +70,7 @@ fn overlayInputSystem() void {
 
 fn levelInputSystem(reg: *ecs.Registry) !void {
     if (rl.isKeyPressed(.one)) {
-        const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_one.json");
-        defer std.heap.page_allocator.free(json);
-
+        const json = @embedFile("..\\levels\\level_one.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
@@ -81,9 +79,7 @@ fn levelInputSystem(reg: *ecs.Registry) !void {
         level.load(reg);
     }
     if (rl.isKeyPressed(.two)) {
-        const json = try serialiser.readJsonFile(std.heap.page_allocator, "levels/level_two.json");
-        defer std.heap.page_allocator.free(json);
-
+        const json = @embedFile("..\\levels\\level_two.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
@@ -154,20 +150,18 @@ fn jumpInputSystem(reg: *ecs.Registry, dt: f32) void {
             jump.buffer_time = @max(0, jump.buffer_time - dt);
         }
 
-        if(jump.is_jumping and vel.y < 0) {
+        if (jump.is_jumping and vel.y < 0) {
             const jumpKeyReleased =
                 !rl.isKeyDown(.space) and
                 !rl.isKeyDown(.up) and
                 !rl.isKeyDown(.w);
-            if(jumpKeyReleased) {
+            if (jumpKeyReleased) {
                 vel.y *= 0.6;
                 jump.is_jumping = false;
             }
-        }
-        else if(jump.is_jumping and vel.y >= 0) {
+        } else if (jump.is_jumping and vel.y >= 0) {
             jump.is_jumping = false;
         }
-
     }
 }
 
