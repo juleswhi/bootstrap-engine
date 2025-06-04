@@ -36,7 +36,7 @@ jobs:
 
       # Build step
       - name: Build project
-        run: zig build -Drelease-safe
+        run: zig build -Doptimize=ReleaseFast
 
       # Package Linux binary
       - name: Package Linux release
@@ -52,7 +52,7 @@ jobs:
         run: |
           mkdir release
           cp zig-out/bin/<your-binary-name>.exe release/
-          Compress-Archive -Path release -DestinationPath windows-release.zip
+          Compress-Archive -Path release/* -DestinationPath windows-release.zip
 
       # Upload artifacts
       - name: Upload build artifacts
@@ -60,9 +60,8 @@ jobs:
         with:
           name: ${{ runner.os }}-release
           path: |
-            ${{ runner.os }}-release.*
-            # For Linux: linux-release.tar.gz
-            # For Windows: windows-release.zip
+            linux-release.tar.gz
+            windows-release.zip
 
   create-release:
     name: Create Release
@@ -81,7 +80,7 @@ jobs:
           tag_name: ${{ github.sha }}
           body: Automatic release for Windows and Linux
           files: |
-            artifacts/ubuntu-latest-release/linux-release.tar.gz
-            artifacts/windows-latest-release/windows-release.zip
+            artifacts/linux-release.tar.gz
+            artifacts/windows-release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
