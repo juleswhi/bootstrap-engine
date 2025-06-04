@@ -22,7 +22,7 @@ pub fn main() !void {
     defer reg.deinit();
 
     const width = 1500;
-    const height = 820;
+    const height = if(builtin.os.tag == .windows) 820 else 800;
 
     try createPlayer(&reg, width, height);
 

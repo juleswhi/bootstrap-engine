@@ -4,6 +4,7 @@ const comp = @import("../components/components.zig");
 const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
 const sd = @import("../log.zig");
+const builtin = @import("builtin");
 
 // TODO: mkae json file
 // TODO: lerp
@@ -70,7 +71,7 @@ fn overlayInputSystem() void {
 
 fn levelInputSystem(reg: *ecs.Registry) !void {
     if (rl.isKeyPressed(.one)) {
-        const json = @embedFile("..\\levels\\level_one.json");
+        const json = if(builtin.os.tag == .windows) @embedFile("..\\levels\\level_one.json") else @embedFile("../levels/level_one.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
@@ -79,7 +80,7 @@ fn levelInputSystem(reg: *ecs.Registry) !void {
         level.load(reg);
     }
     if (rl.isKeyPressed(.two)) {
-        const json = @embedFile("..\\levels\\level_two.json");
+        const json = if(builtin.os.tag == .windows) @embedFile("..\\levels\\level_two.json") else @embedFile("../levels/level_two.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);

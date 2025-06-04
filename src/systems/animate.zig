@@ -23,7 +23,7 @@ pub fn animate(reg: *ecs.Registry, frame_counter: *u32) void {
         }
         if (sprite.current_frame > toFloat(sprite.num_frames - 2)) {
             if (!sprite.looping) {
-                if (animate_comp.type == .land) {
+                if (animate_comp.type == .land or animate_comp.type == animate_comp.previous_type) {
                     animate_comp.set_animation(.idle);
                 } else {
                     animate_comp.set_animation(animate_comp.previous_type);
