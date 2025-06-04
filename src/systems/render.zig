@@ -4,6 +4,8 @@ const rl = @import("raylib");
 const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const sd = @import("../log.zig");
+const builtin = @import("builtin");
+const windows = builtin.os.tag == .windows;
 
 pub fn render(reg: *ecs.Registry) void {
     rl.beginBlendMode(rl.BlendMode.alpha);
@@ -24,6 +26,8 @@ pub fn render(reg: *ecs.Registry) void {
 
     if (comp.Debug.active) {
         debugRender(reg);
+    } else {
+        controlRender();
     }
 }
 
@@ -79,6 +83,9 @@ fn debugRender(reg: *ecs.Registry) void {
             .blue,
         );
     }
+}
+
+fn controlRender() void {
 }
 
 fn toSentinel(args: anytype) [:0]u8 {

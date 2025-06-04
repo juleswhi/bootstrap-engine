@@ -14,6 +14,7 @@ const Debug = @import("components/debug.zig").Debug;
 const builtin = @import("builtin");
 
 pub const FPS: i32 = 240;
+const windows = builtin.os.tag == .windows;
 
 pub fn main() !void {
     Debug.active = false;
@@ -22,11 +23,11 @@ pub fn main() !void {
     defer reg.deinit();
 
     const width = 1500;
-    const height = if(builtin.os.tag == .windows) 820 else 800;
+    const height = if(windows) 820 else 800;
 
     try createPlayer(&reg, width, height);
 
-    const json = if (builtin.os.tag == .windows) @embedFile("levels\\level_one.json") else @embedFile("levels/level_one.json");
+    const json = if (windows) @embedFile("levels\\level_one.json") else @embedFile("levels/level_one.json");
 
     var level = try serialiser.deserialiseLevel(json);
     defer std.heap.page_allocator.free(level.rects);
@@ -82,15 +83,15 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
 
     reg.add(entity, comp.Dodge{ .speed = 1500 });
 
-    const idle_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\idle.png") else @embedFile("assets/rain/idle.png");
-    const run_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\run.png") else @embedFile("assets/rain/run.png");
-    const jump_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\jump.png") else @embedFile("assets/rain/jump.png");
-    const punch_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\punch.png") else @embedFile("assets/rain/punch.png");
-    const roll_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\roll.png") else @embedFile("assets/rain/roll.png");
-    const dash_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\dash.png") else @embedFile("assets/rain/dash.png");
-    const land_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\land.png") else @embedFile("assets/rain/land.png");
-    const crouch_idle_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\crouch-idle.png") else @embedFile("assets/rain/crouch-idle.png");
-    const crouch_walk_png = if (builtin.os.tag == .windows) @embedFile("assets\\rain\\crouch-walk.png") else @embedFile("assets/rain/crouch-walk.png");
+    const idle_png = if (windows) @embedFile("assets\\rain\\idle.png") else @embedFile("assets/rain/idle.png");
+    const run_png = if (windows) @embedFile("assets\\rain\\run.png") else @embedFile("assets/rain/run.png");
+    const jump_png = if (windows) @embedFile("assets\\rain\\jump.png") else @embedFile("assets/rain/jump.png");
+    const punch_png = if (windows) @embedFile("assets\\rain\\punch.png") else @embedFile("assets/rain/punch.png");
+    const roll_png = if (windows) @embedFile("assets\\rain\\roll.png") else @embedFile("assets/rain/roll.png");
+    const dash_png = if (windows) @embedFile("assets\\rain\\dash.png") else @embedFile("assets/rain/dash.png");
+    const land_png = if (windows) @embedFile("assets\\rain\\land.png") else @embedFile("assets/rain/land.png");
+    const crouch_idle_png = if (windows) @embedFile("assets\\rain\\crouch-idle.png") else @embedFile("assets/rain/crouch-idle.png");
+    const crouch_walk_png = if (windows) @embedFile("assets\\rain\\crouch-walk.png") else @embedFile("assets/rain/crouch-walk.png");
 
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
     try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 2, true, 0, 15));
