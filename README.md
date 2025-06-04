@@ -7,7 +7,7 @@ Game Engine For Bootstrap
 </div>
 
 
-## Installation
+## Building
 
 ### Linux
 
@@ -24,4 +24,11 @@ zig build run
 
 ### Windows
 
-idk
+Current executables are located in the releases tab.
+
+If you want to build it yourself, clone and ensure the latest version of zig
+is installed.
+
+```
+zig build -Dtarget=x86_64-windows -Doptimize=ReleaseFast
+```
