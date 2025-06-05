@@ -84,10 +84,6 @@ pub fn info(comptime fmt: []const u8, args: anytype) void {
     log(.info, fmt, args);
 }
 
-pub fn warn(comptime fmt: []const u8, args: anytype) void {
-    log(.warn, fmt, args);
-}
-
 pub fn err(comptime fmt: []const u8, args: anytype) void {
     log(.err, fmt, args);
 }

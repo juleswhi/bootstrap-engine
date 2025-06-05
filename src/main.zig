@@ -13,17 +13,17 @@ const unloadTextures = @import("systems/animate.zig").unloadTextures;
 const Debug = @import("components/debug.zig").Debug;
 const builtin = @import("builtin");
 
-pub const FPS: i32 = 240;
+pub const FPS: i32 = 120;
 const windows = builtin.os.tag == .windows;
 
 pub fn main() !void {
-    Debug.active = false;
+    Debug.active = true;
 
     var reg = ecs.Registry.init(std.heap.page_allocator);
     defer reg.deinit();
 
     const width = 1500;
-    const height = if(windows) 820 else 800;
+    const height = if (windows) 820 else 800;
 
     try createPlayer(&reg, width, height);
 
@@ -41,21 +41,19 @@ pub fn main() !void {
 
     try loadTextures(&reg);
 
-    var frame_counter: u32 = 0;
     var last_frame_time = rl.getTime();
 
     while (!rl.windowShouldClose()) {
         const current_time = rl.getTime();
         const dt: f32 = @floatCast(current_time - last_frame_time);
         last_frame_time = current_time;
-        frame_counter += 1;
 
         try systems.Input(&reg, dt);
         systems.Dodge(&reg, dt);
         systems.Gravity(&reg, dt);
         systems.Movement(&reg, dt);
         systems.Collision(&reg);
-        systems.Animate(&reg, &frame_counter);
+        systems.Animate(&reg, dt);
 
         rl.beginDrawing();
         defer rl.endDrawing();
@@ -94,15 +92,15 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     const crouch_walk_png = if (windows) @embedFile("assets\\rain\\crouch-walk.png") else @embedFile("assets/rain/crouch-walk.png");
 
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
-    try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 2, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("run", run_png, 8, 48, 48, 3, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 2, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("punch", punch_png, 8, 64, 64, 3, false, -15, 0));
-    try sprite_list.append(comp.Sprite.new("roll", roll_png, 7, 48, 48, 2, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("dash", dash_png, 9, 48, 48, 4, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("land", land_png, 9, 48, 48, 3, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("crouch_idle", crouch_idle_png, 10, 48, 48, 3, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("crouch_walk", crouch_walk_png, 10, 48, 48, 3, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 12, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("run", run_png, 8, 48, 48, 12, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("punch", punch_png, 8, 64, 64, 12, false, -15, 0));
+    try sprite_list.append(comp.Sprite.new("roll", roll_png, 7, 48, 48, 12, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("dash", dash_png, 9, 48, 48, 12, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("land", land_png, 9, 48, 48, 12, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("crouch_idle", crouch_idle_png, 10, 48, 48, 12, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("crouch_walk", crouch_walk_png, 10, 48, 48, 12, true, 0, 15));
 
     reg.add(entity, comp.Animate{ .sprites = try sprite_list.toOwnedSlice() });
 

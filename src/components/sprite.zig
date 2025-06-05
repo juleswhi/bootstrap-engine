@@ -6,6 +6,7 @@ pub const Sprite = struct {
     texture: ?rl.Texture2D = null,
     rectangle: rl.Rectangle = rl.Rectangle{ .x = 0, .y = 0, .width = 0, .height = 0 },
     current_frame: f32 = 0,
+    accumulator: f32 = 0,
     num_frames: u32,
     frame_speed: u32 = 3,
     width: u32 = 0,

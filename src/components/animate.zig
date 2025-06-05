@@ -59,9 +59,11 @@ pub const Animate = struct {
     pub fn set_animation(self: *Animate, t: AnimateType) void {
         self.previous_type = self.type;
         self.type = t;
+
         for (self.sprites) |*s| {
             if (!std.mem.eql(u8, type_to_str(self.type), s.name)) {
                 s.current_frame = 0;
+                // self.get_sprite().accumulator = 0;
             }
         }
     }
