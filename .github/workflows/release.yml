@@ -80,7 +80,7 @@ jobs:
           tag_name: ${{ github.sha }}
           body: Automatic release for Windows and Linux
           files: |
-            artifacts/Linux-release.tar.gz
-            artifacts/Windows-release.zip
+            Linux-release.tar.gz
+            Windows-release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
