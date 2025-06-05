@@ -51,7 +51,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir release
-          cp zig-out/bin/bootstrap.exe release/
+          cp zig-out/bootstrap.exe release/
           Compress-Archive -Path release/* -DestinationPath windows-release.zip
 
       # Upload artifacts
