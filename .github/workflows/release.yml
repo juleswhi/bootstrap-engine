@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        uses: actions/upload-artifact@v4
+        uses: actions/download-artifact@v4
 
       - name: Setup Zig
         uses: mlugg/setup-zig@v2
@@ -43,7 +45,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir release
-          cp zig-out/bin/<your-binary-name> release/
+          cp zig-out/bin/bootstrap release/
           tar czvf linux-release.tar.gz -C release .
 
       # Package Windows binary
@@ -51,7 +53,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir release
-          cp zig-out/bin/<your-binary-name>.exe release/
+          cp zig-out/bin/bootstrap.exe release/
           Compress-Archive -Path release/* -DestinationPath windows-release.zip
 
       # Upload artifacts
