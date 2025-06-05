@@ -18,6 +18,7 @@ const windows = builtin.os.tag == .windows;
 
 pub fn main() !void {
     Debug.active = true;
+    Debug.all = false;
 
     var reg = ecs.Registry.init(std.heap.page_allocator);
     defer reg.deinit();
@@ -45,7 +46,7 @@ pub fn main() !void {
 
     while (!rl.windowShouldClose()) {
         const current_time = rl.getTime();
-        const dt: f32 = @floatCast(current_time - last_frame_time);
+        const dt: f32 = @as(f32, @floatCast(current_time - last_frame_time));
         last_frame_time = current_time;
 
         try systems.Input(&reg, dt);
@@ -94,7 +95,7 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
     try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 12, true, 0, 15));
     try sprite_list.append(comp.Sprite.new("run", run_png, 8, 48, 48, 12, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 15).show_frame(5));
     try sprite_list.append(comp.Sprite.new("punch", punch_png, 8, 64, 64, 12, false, -15, 0));
     try sprite_list.append(comp.Sprite.new("roll", roll_png, 7, 48, 48, 12, false, 0, 15));
     try sprite_list.append(comp.Sprite.new("dash", dash_png, 9, 48, 48, 12, false, 0, 15));

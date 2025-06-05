@@ -47,9 +47,14 @@ fn debugRender(reg: *ecs.Registry) void {
         defer std.heap.page_allocator.free(vel_x);
         const vel_y = toSentinel(.{toInt(velocity.y)});
         defer std.heap.page_allocator.free(vel_y);
+        const sprite_name = toSentinelString(.{ comp.Animate.type_to_str(animate.type) });
+        defer std.heap.page_allocator.free(sprite_name);
+        const frame_num = toSentinel(.{toInt(sprite.current_frame)});
+        defer std.heap.page_allocator.free(frame_num);
         rl.drawText(vel_x, 10, 170, 20, .white);
         rl.drawText(vel_y, 10, 190, 20, .white);
-
+        rl.drawText(sprite_name, 10, 210, 20, .white);
+        rl.drawText(frame_num, 10, 230, 20, .white);
         rl.drawTexture(sprite.texture.?, 0, 0, .white);
 
         for (0..sprite.num_frames) |frame| {
@@ -59,7 +64,7 @@ fn debugRender(reg: *ecs.Registry) void {
                 0,
                 toInt(toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)),
                 sprite.texture.?.height,
-                if (sprite.current_frame == toFloat(frame)) .blue else .white,
+                if (sprite.current_frame == toFloat(frame)) .red else .white,
             );
             const str = std.fmt.allocPrintZ(std.heap.page_allocator, "{}", .{frame}) catch unreachable;
             defer std.heap.page_allocator.free(str);
@@ -90,6 +95,11 @@ fn controlRender() void {
 
 fn toSentinel(args: anytype) [:0]u8 {
     const str = std.fmt.allocPrintZ(std.heap.page_allocator, "{}", args) catch unreachable;
+    return str;
+}
+
+fn toSentinelString(args: anytype) [:0]u8 {
+    const str = std.fmt.allocPrintZ(std.heap.page_allocator, "{s}", args) catch unreachable;
     return str;
 }
 
