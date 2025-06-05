@@ -60,8 +60,8 @@ jobs:
         with:
           name: ${{ runner.os }}-release
           path: |
-            release/linux-release.tar.gz
-            release/windows-release.zip
+            linux-release.tar.gz
+            windows-release.zip
 
   create-release:
     name: Create Release
@@ -80,7 +80,7 @@ jobs:
           tag_name: ${{ github.sha }}
           body: Automatic release for Windows and Linux
           files: |
-            release/linux-release.tar.gz
-            release/windows-release.zip
+            artifacts/linux-release.tar.gz
+            artifacts/windows-release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
