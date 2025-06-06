@@ -41,9 +41,7 @@ fn debugRender(reg: *ecs.Registry) void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate = view.get(comp.Animate, e);
-        const hitbox = view.get(comp.Hitbox, e);
         const velocity = view.get(comp.Velocity, e);
-        const canvas = view.get(comp.Canvas, e);
         const sprite = animate.get_sprite();
 
         rl.drawText("Debug Mode", 10, 150, 20, .white);
@@ -76,23 +74,6 @@ fn debugRender(reg: *ecs.Registry) void {
             defer std.heap.page_allocator.free(str);
             rl.drawText(str, x + 10, 100, 20, .white);
         }
-
-        rl.drawRectangleLines(
-            toInt(hitbox.x),
-            toInt(hitbox.y),
-            toInt(hitbox.width),
-            toInt(hitbox.height),
-            .red,
-        );
-
-        const hitbox_bottom = hitbox.y + hitbox.height;
-        rl.drawRectangleLines(
-            toInt((hitbox.x + hitbox.width / 2) - (canvas.width / 2)),
-            toInt(hitbox_bottom - canvas.height),
-            toInt(canvas.width),
-            toInt(canvas.height),
-            .blue,
-        );
     }
 }
 
@@ -113,27 +94,39 @@ fn animateRender(reg: *ecs.Registry) void {
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate = view.get(comp.Animate, e);
-        const canvas = view.get(comp.Canvas, e);
+        var canvas = view.get(comp.Canvas, e);
         const hitbox = view.get(comp.Hitbox, e);
 
-        const sprite = animate.get_sprite();
+        var sprite = animate.get_sprite();
 
-        const hitbox_bottom = hitbox.y + hitbox.height;
+        canvas.width = toFloat(sprite.width) * canvas.scale_x;
+        canvas.height = toFloat(sprite.height) * canvas.scale_y;
+        // sd.debug("{s} sprite has width of {d}, new canvas width is: {d}", .{sprite.name, sprite.width, canvas.width});
+        // sd.debug("{s} sprite has height of {d}, new canvas width is: {d}", .{sprite.name, sprite.height, canvas.height});
 
-        const scale_x = (canvas.width / toFloat(sprite.width));
-        const scale_y = (canvas.height / toFloat(sprite.height));
-
-        if (comp.Debug.all) {
-            sd.debug("X factor: {}", .{toInt(scale_x)});
-            sd.debug("Y factor: {}", .{toInt(scale_y)});
+        if(rl.isKeyPressed(.comma)) {
+            sprite.offset_y -= 1;
+            sd.debug("new y offset is: {d}", .{sprite.offset_y});
+        } else if(rl.isKeyPressed(.period)) {
+            sprite.offset_y += 1;
+            sd.debug("new y offset is: {d}", .{sprite.offset_y});
         }
 
         sprite.rectangle.x =
             (sprite.current_frame * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)));
 
+        const hitbox_center_x = hitbox.x + (0.5 * hitbox.width);
+        const hitbox_center_y = hitbox.y + (0.5 * hitbox.height);
+
+        // const canvas_center_x = hitbox_center_x - ()
+
+        const x = hitbox_center_x - (0.5 * canvas.width);
+        // const y = hitbox_center_y - sprite.offset_y;
+        const y = hitbox_center_y - (0.5 * canvas.height) ;
+
         const dest_rect = rl.Rectangle{
-            .x = (hitbox.x + (hitbox.width / 2) - (canvas.width / 2)) + sprite.offset_x,
-            .y = (hitbox_bottom - canvas.height) + sprite.offset_y,
+            .x = x,
+            .y = y - sprite.offset_y,
             .width = canvas.width,
             .height = canvas.height,
         };
@@ -149,6 +142,23 @@ fn animateRender(reg: *ecs.Registry) void {
             0,
             rl.Color{ .r = 255, .g = 255, .b = 255, .a = 255 },
         );
+
+        if (comp.Debug.active) {
+            rl.drawRectangleLines(
+                toInt(x),
+                toInt(y),
+                toInt(canvas.width),
+                toInt(canvas.height),
+                .blue,
+            );
+            rl.drawRectangleLines(
+                toInt(hitbox.x),
+                toInt(hitbox.y),
+                toInt(hitbox.width),
+                toInt(hitbox.height),
+                .red,
+            );
+        }
     }
 }
 

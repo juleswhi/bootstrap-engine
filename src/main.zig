@@ -67,7 +67,9 @@ pub fn main() !void {
         var iter = view.entityIterator();
         if (iter.next()) |player| {
             const hitbox = reg.get(comp.Hitbox, player);
-            camera.cam.target.x = hitbox.x + hitbox.width / 2;
+            const vel = reg.get(comp.Velocity, player);
+            camera.cam.target.x = std.math.lerp(camera.cam.target.x, (hitbox.x + (vel.x / 5)), 0.03);
+            // camera.cam.target.x = hitbox.x + hitbox.width / 2;
         }
 
         rl.beginDrawing();
@@ -93,7 +95,7 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     const entity = reg.create();
 
     reg.add(entity, comp.Hitbox.new(width / 2, 10, 48, 48));
-    reg.add(entity, comp.Canvas{ .width = 96, .height = 96 });
+    reg.add(entity, comp.Canvas{ .width = 96, .height = 96, .scale_x = 2, .scale_y = 2 });
 
     reg.add(entity, comp.Jump{});
     reg.add(entity, comp.Velocity.new(0, 0));
@@ -113,15 +115,15 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     const crouch_walk_png = if (windows) @embedFile("assets\\rain\\crouch-walk.png") else @embedFile("assets/rain/crouch-walk.png");
 
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
-    try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 12, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("run", run_png, 8, 48, 48, 12, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 15).add_next(.land));
-    try sprite_list.append(comp.Sprite.new("punch", punch_png, 8, 64, 64, 12, false, -15, 0));
-    try sprite_list.append(comp.Sprite.new("roll", roll_png, 7, 48, 48, 12, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("dash", dash_png, 9, 48, 48, 12, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("land", land_png, 9, 48, 48, 12, false, 0, 15).add_next(.idle));
-    try sprite_list.append(comp.Sprite.new("crouch_idle", crouch_idle_png, 10, 48, 48, 12, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("crouch_walk", crouch_walk_png, 10, 48, 48, 12, true, 0, 15));
+    try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 12, true, 0, 8));
+    try sprite_list.append(comp.Sprite.new("run", run_png, 8, 48, 48, 12, true, 0, 8));
+    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 8).add_next(.land));
+    try sprite_list.append(comp.Sprite.new("punch", punch_png, 8, 64, 64, 12, false, 0, 8));
+    try sprite_list.append(comp.Sprite.new("roll", roll_png, 7, 48, 48, 12, false, 0, 8));
+    try sprite_list.append(comp.Sprite.new("dash", dash_png, 9, 48, 48, 12, false, 0, 8));
+    try sprite_list.append(comp.Sprite.new("land", land_png, 9, 48, 48, 12, false, 0, 8).add_next(.idle));
+    try sprite_list.append(comp.Sprite.new("crouch_idle", crouch_idle_png, 10, 48, 48, 12, true, 0, 8));
+    try sprite_list.append(comp.Sprite.new("crouch_walk", crouch_walk_png, 10, 48, 48, 12, true, 0, 8));
 
     reg.add(entity, comp.Animate{ .sprites = try sprite_list.toOwnedSlice() });
 
