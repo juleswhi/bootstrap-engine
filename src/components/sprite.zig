@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const AnimateType = @import("../components/animate.zig").AnimateType;
 
 // increase jump height
 
@@ -16,7 +17,7 @@ pub const Sprite = struct {
     looping: bool = true,
     offset_x: f32 = 0,
     offset_y: f32 = 0,
-    show_frames: u32 = 0,
+    next: ?AnimateType = null,
 
     pub fn new(name: []const u8, image_data: []const u8, num_frames: u32, width: u32, height: u32, frame_speed: u32, looping: bool, offset_x: f32, offset_y: f32) Sprite {
         return Sprite{
@@ -29,14 +30,12 @@ pub const Sprite = struct {
             .looping = looping,
             .offset_x = offset_x,
             .offset_y = offset_y,
-            .show_frames = num_frames,
         };
     }
 
-
-    pub fn show_frame(sprite: *const Sprite, num: u32) Sprite {
-        var s = sprite.*;
-        s.show_frames = num;
+    pub fn add_next(self: *const Sprite, next: AnimateType) Sprite {
+        var s = self.*;
+        s.next = next;
         return s;
     }
 };

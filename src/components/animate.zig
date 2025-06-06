@@ -1,6 +1,7 @@
 const std = @import("std");
 const rl = @import("raylib");
 const Sprite = @import("sprite.zig").Sprite;
+const sd = @import("../log.zig");
 
 pub const AnimateType = enum {
     idle,
@@ -55,16 +56,22 @@ pub const Animate = struct {
             .crouch_walk => "crouch_walk",
         };
     }
-
     pub fn set_animation(self: *Animate, t: AnimateType) void {
+        if (self.type == t) return;
+
         self.previous_type = self.type;
         self.type = t;
 
         for (self.sprites) |*s| {
-            if (!std.mem.eql(u8, type_to_str(self.type), s.name)) {
+            if (!std.mem.eql(u8, s.name, self.get_sprite().name)) {
                 s.current_frame = 0;
-                // self.get_sprite().accumulator = 0;
+                s.rectangle.x =
+                    (s.current_frame * (toFloat(s.texture.?.width) / toFloat(s.num_frames)));
             }
         }
     }
 };
+
+fn toFloat(x: anytype) f32 {
+    return @floatFromInt(x);
+}

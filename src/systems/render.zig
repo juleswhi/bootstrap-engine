@@ -5,9 +5,12 @@ const comp = @import("../components/components.zig");
 const Level = @import("../level.zig").Level;
 const sd = @import("../log.zig");
 const builtin = @import("builtin");
-const windows = builtin.os.tag == .windows;
+const main = @import("../main.zig");
+// const windows = builtin.os.tag == .windows;
+const windows = false;
 
-pub fn render(reg: *ecs.Registry) void {
+// TODO: Fix punch animation
+pub fn cameraRender(reg: *ecs.Registry) void {
     rl.beginBlendMode(rl.BlendMode.alpha);
     defer rl.endBlendMode();
     var view = reg.view(.{ comp.Hitbox, comp.Colour, comp.Environment }, .{});
@@ -23,7 +26,9 @@ pub fn render(reg: *ecs.Registry) void {
     }
 
     animateRender(reg);
+}
 
+pub fn screenRender(reg: *ecs.Registry) void {
     if (comp.Debug.active) {
         debugRender(reg);
     } else {
@@ -32,7 +37,7 @@ pub fn render(reg: *ecs.Registry) void {
 }
 
 fn debugRender(reg: *ecs.Registry) void {
-    var view = reg.view(.{ comp.Animate, comp.Hitbox, comp.Canvas }, .{});
+    var view = reg.view(.{ comp.Animate, comp.Hitbox, comp.Canvas, comp.PlayerTag }, .{});
     var iter = view.entityIterator();
     while (iter.next()) |e| {
         const animate = view.get(comp.Animate, e);
@@ -47,14 +52,15 @@ fn debugRender(reg: *ecs.Registry) void {
         defer std.heap.page_allocator.free(vel_x);
         const vel_y = toSentinel(.{toInt(velocity.y)});
         defer std.heap.page_allocator.free(vel_y);
-        const sprite_name = toSentinelString(.{ comp.Animate.type_to_str(animate.type) });
+        const sprite_name = toSentinelString(.{comp.Animate.type_to_str(animate.type)});
         defer std.heap.page_allocator.free(sprite_name);
-        const frame_num = toSentinel(.{toInt(sprite.current_frame)});
-        defer std.heap.page_allocator.free(frame_num);
+        const dt_modifier = std.fmt.allocPrintZ(std.heap.page_allocator, "DeltaTime: {d}", .{main.DELTA_TIME_MODIFIER}) catch unreachable;
+        defer std.heap.page_allocator.free(dt_modifier);
+
         rl.drawText(vel_x, 10, 170, 20, .white);
         rl.drawText(vel_y, 10, 190, 20, .white);
         rl.drawText(sprite_name, 10, 210, 20, .white);
-        rl.drawText(frame_num, 10, 230, 20, .white);
+        rl.drawText(dt_modifier, 10, 230, 20, .white);
         rl.drawTexture(sprite.texture.?, 0, 0, .white);
 
         for (0..sprite.num_frames) |frame| {
@@ -90,8 +96,7 @@ fn debugRender(reg: *ecs.Registry) void {
     }
 }
 
-fn controlRender() void {
-}
+fn controlRender() void {}
 
 fn toSentinel(args: anytype) [:0]u8 {
     const str = std.fmt.allocPrintZ(std.heap.page_allocator, "{}", args) catch unreachable;
@@ -123,11 +128,14 @@ fn animateRender(reg: *ecs.Registry) void {
             sd.debug("Y factor: {}", .{toInt(scale_y)});
         }
 
+        sprite.rectangle.x =
+            (sprite.current_frame * (toFloat(sprite.texture.?.width) / toFloat(sprite.num_frames)));
+
         const dest_rect = rl.Rectangle{
-            .x = (hitbox.x + (hitbox.width / 2) - (canvas.width / 2)) + (sprite.offset_x),
-            .y = (hitbox_bottom - canvas.height) + (sprite.offset_y),
-            .width = canvas.width * (1 / scale_x) * 2,
-            .height = canvas.height * (1 / scale_y) * 2,
+            .x = (hitbox.x + (hitbox.width / 2) - (canvas.width / 2)) + sprite.offset_x,
+            .y = (hitbox_bottom - canvas.height) + sprite.offset_y,
+            .width = canvas.width,
+            .height = canvas.height,
         };
 
         var source = sprite.rectangle;

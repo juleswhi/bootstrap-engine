@@ -1,5 +1,6 @@
 const Level = @import("../level.zig").Level;
 
+pub const Camera = @import("camera.zig").Camera;
 pub const Velocity = @import("velocity.zig").Velocity;
 pub const Colour = @import("colour.zig").Colour;
 pub const Grounded = @import("grounded.zig").Grounded;

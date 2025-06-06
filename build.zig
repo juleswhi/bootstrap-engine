@@ -19,6 +19,7 @@ pub fn build(b: *std.Build) void {
     const exe = b.addExecutable(.{
         .name = "bootstrap",
         .root_module = exe_mod,
+        .use_lld = false,
     });
 
     if (target.result.os.tag == .windows) {

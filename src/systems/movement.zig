@@ -35,7 +35,7 @@ pub fn movement(reg: *ecs.Registry, dt: f32) void {
         var ani = view.get(comp.Animate, e);
 
         if (ani.type == .punch or ani.type == .dash) {} else if (vel.y == 0 and dodge.is_dodging) {
-            ani.set_animation(.dash);
+            // ani.set_animation(.dash);
         } else if (vel.x == 0 and vel.y == 0 and !crouch.active and ani.type != .land) {
             ani.set_animation(.idle);
         } else if (vel.x == 0 and vel.y == 0 and crouch.active) {

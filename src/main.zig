@@ -13,8 +13,11 @@ const unloadTextures = @import("systems/animate.zig").unloadTextures;
 const Debug = @import("components/debug.zig").Debug;
 const builtin = @import("builtin");
 
-pub const FPS: i32 = 120;
-const windows = builtin.os.tag == .windows;
+pub const FPS: i32 = 240;
+// const windows = builtin.os.tag == .windows;
+const windows = false;
+
+pub var DELTA_TIME_MODIFIER: f32 = 1;
 
 pub fn main() !void {
     Debug.active = true;
@@ -38,6 +41,10 @@ pub fn main() !void {
     rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
 
+    const cam = reg.create();
+    reg.add(cam, comp.Camera.new(width));
+    var camera = reg.get(comp.Camera, cam);
+
     rl.setTargetFPS(FPS);
 
     try loadTextures(&reg);
@@ -46,7 +53,7 @@ pub fn main() !void {
 
     while (!rl.windowShouldClose()) {
         const current_time = rl.getTime();
-        const dt: f32 = @as(f32, @floatCast(current_time - last_frame_time));
+        const dt: f32 = @as(f32, @floatCast(current_time - last_frame_time)) * DELTA_TIME_MODIFIER;
         last_frame_time = current_time;
 
         try systems.Input(&reg, dt);
@@ -56,14 +63,27 @@ pub fn main() !void {
         systems.Collision(&reg);
         systems.Animate(&reg, dt);
 
+        var view = reg.view(.{ comp.PlayerTag, comp.Hitbox }, .{});
+        var iter = view.entityIterator();
+        if (iter.next()) |player| {
+            const hitbox = reg.get(comp.Hitbox, player);
+            camera.cam.target.x = hitbox.x + hitbox.width / 2;
+        }
+
         rl.beginDrawing();
         defer rl.endDrawing();
+        rl.clearBackground(.black);
+
+        {
+            rl.beginMode2D(camera.cam);
+            defer rl.endMode2D();
+
+            systems.RenderCamera(&reg);
+        }
+
+        systems.RenderScreen(&reg);
 
         rl.drawFPS(width - 100, 10);
-
-        systems.Render(&reg);
-
-        rl.clearBackground(.black);
     }
 
     try unloadTextures(&reg);
@@ -95,11 +115,11 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
     var sprite_list = std.ArrayList(comp.Sprite).init(std.heap.page_allocator);
     try sprite_list.append(comp.Sprite.new("idle", idle_png, 10, 48, 48, 12, true, 0, 15));
     try sprite_list.append(comp.Sprite.new("run", run_png, 8, 48, 48, 12, true, 0, 15));
-    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 15).show_frame(5));
+    try sprite_list.append(comp.Sprite.new("jump", jump_png, 6, 48, 48, 8, false, 0, 15).add_next(.land));
     try sprite_list.append(comp.Sprite.new("punch", punch_png, 8, 64, 64, 12, false, -15, 0));
     try sprite_list.append(comp.Sprite.new("roll", roll_png, 7, 48, 48, 12, false, 0, 15));
     try sprite_list.append(comp.Sprite.new("dash", dash_png, 9, 48, 48, 12, false, 0, 15));
-    try sprite_list.append(comp.Sprite.new("land", land_png, 9, 48, 48, 12, false, 0, 15));
+    try sprite_list.append(comp.Sprite.new("land", land_png, 9, 48, 48, 12, false, 0, 15).add_next(.idle));
     try sprite_list.append(comp.Sprite.new("crouch_idle", crouch_idle_png, 10, 48, 48, 12, true, 0, 15));
     try sprite_list.append(comp.Sprite.new("crouch_walk", crouch_walk_png, 10, 48, 48, 12, true, 0, 15));
 
@@ -107,6 +127,14 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
 
     reg.add(entity, comp.PlayerTag{});
     reg.add(entity, comp.Gravity{});
+}
+
+fn screenToPos(x: f32, y: f32, camera: *const rl.Camera2D) rl.Vector2 {
+    return rl.getScreenToWorld2D(.{ .x = x, .y = y }, camera.*);
+}
+
+fn toInt(x: anytype) i32 {
+    return @intFromFloat(x);
 }
 
 test {

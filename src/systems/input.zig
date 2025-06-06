@@ -4,11 +4,12 @@ const comp = @import("../components/components.zig");
 const rl = @import("raylib");
 const serialiser = @import("../serializer.zig");
 const sd = @import("../log.zig");
+const main = @import("../main.zig");
 const builtin = @import("builtin");
+const windows = false;
 
 // TODO: mkae json file
 // TODO: lerp
-// TODO: Variable jump height
 pub fn input(reg: *ecs.Registry, dt: f32) !void {
     var view = reg.view(.{ comp.Hitbox, comp.Velocity, comp.Dodge }, .{});
     var iter = view.entityIterator();
@@ -48,6 +49,11 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
             }
         }
 
+        if (rl.isKeyPressed(.minus)) {
+            main.DELTA_TIME_MODIFIER -= 0.1;
+        } else if (rl.isKeyPressed(.equal)) {
+            main.DELTA_TIME_MODIFIER += 0.1;
+        }
         if (rl.isMouseButtonDown(.left)) {
             gravity.enabled = false;
             hitbox.x = toFloat(rl.getMouseX());
@@ -60,7 +66,22 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
     try levelInputSystem(reg);
     dodgeInputSystem(reg);
     jumpInputSystem(reg, dt);
+    cameraZoomInputSystem(reg);
     overlayInputSystem();
+}
+
+fn cameraZoomInputSystem(reg: *ecs.Registry) void {
+    const view = reg.view(.{comp.Camera}, .{});
+    var iter = view.entityIterator();
+    if (iter.next()) |e| {
+        var camera = view.get(e);
+        if (rl.isKeyPressed(.j)) {
+            camera.cam.zoom += 0.01;
+        }
+        if (rl.isKeyPressed(.k)) {
+            camera.cam.zoom -= 0.01;
+        }
+    }
 }
 
 fn overlayInputSystem() void {
@@ -71,7 +92,7 @@ fn overlayInputSystem() void {
 
 fn levelInputSystem(reg: *ecs.Registry) !void {
     if (rl.isKeyPressed(.one)) {
-        const json = if(builtin.os.tag == .windows) @embedFile("..\\levels\\level_one.json") else @embedFile("../levels/level_one.json");
+        const json = if (windows) @embedFile("..\\levels\\level_one.json") else @embedFile("../levels/level_one.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
@@ -80,7 +101,7 @@ fn levelInputSystem(reg: *ecs.Registry) !void {
         level.load(reg);
     }
     if (rl.isKeyPressed(.two)) {
-        const json = if(builtin.os.tag == .windows) @embedFile("..\\levels\\level_two.json") else @embedFile("../levels/level_two.json");
+        const json = if (windows) @embedFile("..\\levels\\level_two.json") else @embedFile("../levels/level_two.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
