@@ -6,3 +6,4 @@ pub const Movement = @import("systems/movement.zig").movement;
 pub const RenderCamera = @import("systems/render.zig").cameraRender;
 pub const RenderScreen = @import("systems/render.zig").screenRender;
 pub const Animate = @import("systems/animate.zig").animate;
+pub const Camera = @import("systems/camera.zig").camera;

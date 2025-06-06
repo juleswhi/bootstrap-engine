@@ -1,13 +1,29 @@
 const std = @import("std");
 const ecs = @import("ecs");
 const comp = @import("components/components.zig");
+const serialiser = @import("serializer.zig");
+const sd = @import("log.zig");
 const json = std.json;
 
 pub const LevelRectangle = struct {
     hitbox: comp.Hitbox,
-    colour: comp.Colour = comp.Colour.new(0, 255, 0, 255),
+    colour: comp.Colour = comp.Colour.new(166, 151, 156, 255),
     render: bool = false,
 };
+
+pub fn saveLevel(rects: *std.ArrayList(LevelRectangle), name: []const u8) !void {
+    var level = Level{
+        .rects = try rects.toOwnedSlice(),
+        .name = name,
+        .start_x = 500,
+        .start_y = 100,
+    };
+
+    const json_str = try serialiser.serialiseLevel(&level);
+    defer std.heap.page_allocator.free(json_str);
+    sd.debug("{s}\n", .{json_str});
+    try serialiser.writeJsonFile("src/levels/level_three.json", json_str);
+}
 
 pub const Level = struct {
     name: []const u8,

@@ -6,6 +6,9 @@ const serialiser = @import("../serializer.zig");
 const sd = @import("../log.zig");
 const main = @import("../main.zig");
 const builtin = @import("builtin");
+const Level = @import("../level.zig");
+const LevelRectangle = @import("../level.zig").LevelRectangle;
+const editor = @import("../editor.zig").LevelEditor;
 const windows = false;
 
 // TODO: mkae json file
@@ -54,10 +57,16 @@ pub fn input(reg: *ecs.Registry, dt: f32) !void {
         } else if (rl.isKeyPressed(.equal)) {
             main.DELTA_TIME_MODIFIER += 0.1;
         }
-        if (rl.isMouseButtonDown(.left)) {
+        const cam_view = reg.view(.{comp.Camera}, .{});
+        var cam_iter = cam_view.entityIterator();
+        const next = cam_iter.next() orelse return;
+        const camera = cam_view.get(next);
+
+        if (rl.isKeyDown(.t)) {
             gravity.enabled = false;
-            hitbox.x = toFloat(rl.getMouseX());
-            hitbox.y = toFloat(rl.getMouseY());
+            const world_pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera.cam);
+            hitbox.x = world_pos.x - (hitbox.width * 0.5);
+            hitbox.y = world_pos.y - (hitbox.height * 0.5);
         } else {
             gravity.enabled = true;
         }
@@ -90,24 +99,70 @@ fn overlayInputSystem() void {
     }
 }
 
+// TODO: Fix memory
 fn levelInputSystem(reg: *ecs.Registry) !void {
     if (rl.isKeyPressed(.one)) {
         const json = if (windows) @embedFile("..\\levels\\level_one.json") else @embedFile("../levels/level_one.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
-        defer std.heap.page_allocator.free(level.rects);
+        // defer std.heap.page_allocator.free(level.rects);
 
         level.load(reg);
+        editor.active = false;
     }
     if (rl.isKeyPressed(.two)) {
         const json = if (windows) @embedFile("..\\levels\\level_two.json") else @embedFile("../levels/level_two.json");
         sd.debug("{s}", .{json});
 
         var level = try serialiser.deserialiseLevel(json);
-        defer std.heap.page_allocator.free(level.rects);
+        // defer std.heap.page_allocator.free(level.rects);
 
         level.load(reg);
+        editor.active = false;
+    }
+    if (rl.isKeyPressed(.three)) {
+        const json = if (windows) @embedFile("..\\levels\\level_three.json") else @embedFile("../levels/level_three.json");
+        editor.active = true;
+        var level = try serialiser.deserialiseLevel(json);
+        level.load(reg);
+    }
+
+    const level_entity = reg.basicView(comp.LevelTag).data()[0];
+
+    const level_tag = reg.get(comp.LevelTag, level_entity);
+    const level = level_tag.level;
+
+    const cam_view = reg.view(.{comp.Camera}, .{});
+    var cam_iter = cam_view.entityIterator();
+    const next = cam_iter.next() orelse return;
+    const camera = cam_view.get(next);
+
+    _ = level;
+
+    const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera.cam);
+
+    if (rl.isKeyPressed(.r)) {
+        try editor.add_rectangle(reg, pos);
+    }
+    //if(rl.isMouseButtonPressed(.right)) {
+    //    try editor.remove_rectangle(reg, pos);
+    //}
+
+    if (rl.isKeyPressed(.c)) {
+        var rect_view = reg.view(.{ comp.Hitbox, comp.Environment }, .{comp.PlayerTag});
+        var rect_iter = rect_view.entityIterator();
+        var rect_list = std.ArrayList(LevelRectangle).init(std.heap.page_allocator);
+        while (rect_iter.next()) |e| {
+            const level_rec = reg.get(comp.Hitbox, e);
+            try rect_list.append(.{
+                .hitbox = level_rec.*,
+                .render = true,
+                .colour = comp.Colour.new(166, 151, 156, 255),
+            });
+        }
+
+        try Level.saveLevel(&rect_list, "level_three");
     }
 }
 

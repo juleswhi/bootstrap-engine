@@ -3,8 +3,10 @@ const ecs = @import("ecs");
 
 pub const Camera = struct {
     cam: rl.Camera2D,
+    follow_rec: rl.Rectangle,
+    follow_id: u32 = 0,
 
-    pub fn new(width: f32) Camera {
+    pub fn new(width: f32, _: f32, id: u32) Camera {
         return .{
             .cam = rl.Camera2D{
                 // .offset = .{ .x = width / 2, .y = height / 2 },
@@ -13,6 +15,13 @@ pub const Camera = struct {
                 .rotation = 0,
                 .zoom = 1,
             },
+            .follow_rec = rl.Rectangle{
+                .x = (width / 2) - (450 / 2),
+                .y = 0,
+                .width = 450,
+                .height = 10,
+            },
+            .follow_id = id,
         };
     }
 

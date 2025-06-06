@@ -23,6 +23,9 @@ pub fn main() !void {
     Debug.active = true;
     Debug.all = false;
 
+    try tests.serialise_level_one();
+    try tests.serialise_test_two();
+
     var reg = ecs.Registry.init(std.heap.page_allocator);
     defer reg.deinit();
 
@@ -41,13 +44,16 @@ pub fn main() !void {
     rl.initWindow(width, height, "Bootstrap Engine");
     defer rl.closeWindow();
 
-    const cam = reg.create();
-    reg.add(cam, comp.Camera.new(width));
-    var camera = reg.get(comp.Camera, cam);
+    const cam_view = reg.view(.{comp.Camera}, .{});
+    var cam_iter = cam_view.entityIterator();
+    const next = cam_iter.next() orelse return;
+    var camera = cam_view.get(next);
 
     rl.setTargetFPS(FPS);
 
     try loadTextures(&reg);
+
+    const background_colour = rl.Color{ .r = 213, .g = 226, .b = 188, .a = 255 };
 
     var last_frame_time = rl.getTime();
 
@@ -62,19 +68,13 @@ pub fn main() !void {
         systems.Movement(&reg, dt);
         systems.Collision(&reg);
         systems.Animate(&reg, dt);
+        systems.Camera(&reg, camera);
 
-        var view = reg.view(.{ comp.PlayerTag, comp.Hitbox }, .{});
-        var iter = view.entityIterator();
-        if (iter.next()) |player| {
-            const hitbox = reg.get(comp.Hitbox, player);
-            const vel = reg.get(comp.Velocity, player);
-            camera.cam.target.x = std.math.lerp(camera.cam.target.x, (hitbox.x + (vel.x / 5)), 0.03);
-            // camera.cam.target.x = hitbox.x + hitbox.width / 2;
-        }
+        camera.cam.target.x = std.math.lerp(camera.cam.target.x, (camera.follow_rec.x + (0.5 * camera.follow_rec.width)), 0.05);
 
         rl.beginDrawing();
         defer rl.endDrawing();
-        rl.clearBackground(.black);
+        rl.clearBackground(background_colour);
 
         {
             rl.beginMode2D(camera.cam);
@@ -91,7 +91,7 @@ pub fn main() !void {
     try unloadTextures(&reg);
 }
 
-fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
+fn createPlayer(reg: *ecs.Registry, width: f32, height: f32) !void {
     const entity = reg.create();
 
     reg.add(entity, comp.Hitbox.new(width / 2, 10, 48, 48));
@@ -129,6 +129,11 @@ fn createPlayer(reg: *ecs.Registry, width: f32, _: f32) !void {
 
     reg.add(entity, comp.PlayerTag{});
     reg.add(entity, comp.Gravity{});
+
+    const player_tag = reg.get(comp.PlayerTag, entity);
+
+    const cam = reg.create();
+    reg.add(cam, comp.Camera.new(width, height, player_tag.id));
 }
 
 fn screenToPos(x: f32, y: f32, camera: *const rl.Camera2D) rl.Vector2 {

@@ -1,3 +1,5 @@
+const LevelEditor = @import("../editor.zig").LevelEditor;
+
 const Level = @import("../level.zig").Level;
 
 pub const Camera = @import("camera.zig").Camera;
@@ -11,9 +13,10 @@ pub const Animate = @import("animate.zig").Animate;
 pub const Hitbox = @import("hitbox.zig").Hitbox;
 pub const Canvas = @import("canvas.zig").Canvas;
 pub const Crouch = @import("crouch.zig").Crouch;
-pub const LevelTag = struct { level: *Level };
+// pub const LevelTag = struct { level: *Level, editor: *LevelEditor };
+pub const LevelTag = struct { level: *Level};
 pub const Environment = struct { render: bool = false };
 
 pub const Debug = @import("debug.zig").Debug;
-pub const PlayerTag = struct {};
+pub const PlayerTag = struct { id: u32 = 0 };
 pub const Gravity = struct { enabled: bool = true };
